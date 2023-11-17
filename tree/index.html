@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style type="text/css">
+  body {
+    margin: 0px
+  }
+	.node {
+    cursor: pointer;
+  }
+
+  .overlay{
+      background-color:#EEE;
+  }
+   
+  .toolbar {
+    position: fixed;
+    top: 10px;
+    left: 145px;
+    }
+
+    .textbox {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    }
+
+  .node circle {
+    fill: #fff;
+    stroke: #2980b9;
+    stroke-width: 1.5px;
+  }
+   
+  .node text {
+    font-size:10px; 
+    font-family:sans-serif;
+  }
+   
+  .link, .mpLink {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+  }
+
+  .ghostCircle.show{
+      display:block;
+  }
+
+  .ghostCircle, .activeDrag .ghostCircle{
+       display: none;
+  }
+
+  .my-tooltip {
+    color: rgba(255, 255, 255, 0.842);
+    background: rgba(22, 22, 22, 0.842);
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+</style>
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="tree.js"></script>
+<body>
+  <div id="textbox" class="textbox"></div>
+  <div id="toolbar" class="toolbar"></div>
+  <div id="tree-container"></div>
+</body>
+</html>
