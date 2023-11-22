@@ -4,6 +4,7 @@
   body {
     margin: 0px
   }
+
 	.node {
     cursor: pointer;
   }
@@ -18,7 +19,18 @@
     left: 145px;
     }
 
-    .textbox {
+  .helpbox {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+    color: rgba(0, 0, 0, 0.842);
+    background: rgba(255, 255, 255, 0.842);
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .textbox {
     position: fixed;
     top: 10px;
     left: 10px;
@@ -31,7 +43,7 @@
   }
    
   .node text {
-    font-size:10px; 
+    font-size:12px; 
     font-family:sans-serif;
   }
    
@@ -56,6 +68,11 @@
     border-radius: 5px;
   }
 
+
+  .hideInput {
+    display: none
+  }
+
 </style>
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -63,6 +80,7 @@
 <body>
   <div id="textbox" class="textbox"></div>
   <div id="toolbar" class="toolbar"></div>
+  <div id="helpbox" class="helpbox"></div>
   <div id="tree-container"></div>
 </body>
 </html>

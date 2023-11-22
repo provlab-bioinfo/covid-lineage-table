@@ -29,7 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 //treeJSON = d3.json("https://raw.githubusercontent.com/MDU-PHL/pango-watch/main/tree/data.json", function(error, treeData) {
 treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
-//#region Setup
+    //#region Setup
 
     // Calculate total nodes, max label length
     var totalNodes = 0;
@@ -42,7 +42,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     var panBoundary = 20; // Within 20px from edges will pan when dragging.
     // Misc. variables
     var i = 0;
-    var duration = 750;
+    var duration = 300;
     var root;
 
     // size of the diagram
@@ -75,9 +75,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         }
     }
 
-//#endregion Setup
+    //#endregion Setup
 
-//#region Node accessing
+    //#region Node accessing
 
     // Returns a list of all nodes under the root.
     function flatten(root) {
@@ -111,55 +111,22 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         return nodes;
     }
 
-//#endregion Node accessing
+    //#endregion Node accessing
 
-//#region Tool bar
-
-    d3.select("#textbox")
-        .append("foreignObject")
-        .html(function (d) {
-            return '<textarea id="import" name="story" rows="10" cols="15">'
-        })
-       
-    d3.select("#toolbar").append("button")
-        .text("Import").on("click", function () {
-            collapse(root);
-
-            prevData = document.getElementById("import").value.split("\n");
-            prevGroups = prevData
-            nodes = flattenDict(root);
-
-            for (let i = 0; i < strains.length; i++) {
-                if (strains[i] == "") return
-                var [strain, value] = strains[i].split(';');
-                console.log("Searching for '" + strain)
-
-                var d = nodes[strain]
-
-                if (d) {
-                    show(d)
-                    if (value) d.value = parseFloat(value)
-                } else {
-                    console.log("Could not find strain: " + strain)
-                }
-            }
-
-            update(root);
-            centerNode(root)
-
-        });
+    //#region Tool bar
 
     // d3.select("#textbox")
     //     .append("foreignObject")
     //     .html(function (d) {
-    //         return '<textarea id="subset" name="story" rows="10" cols="15">'
+    //         return '<textarea id="import" name="story" rows="10" cols="15">'
     //     })
-       
+
     // d3.select("#toolbar").append("button")
-    //     .text("Subset").on("click", function () {
+    //     .text("Import table").on("click", function () {
     //         collapse(root);
 
-    //         strains = document.getElementById("subset").value.split("\n");
+    //         prevData = document.getElementById("import").value.split("\n");
+    //         prevGroups = prevData
     //         nodes = flattenDict(root);
 
     //         for (let i = 0; i < strains.length; i++) {
@@ -182,18 +149,111 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     //     });
 
-    d3.select("#toolbar").append("button")
-        .text("Remove Hidden").on("click", function () {
-            removeHidden(root);
-            collapse(root);
-            expand(root);
-        });
+    d3.select("#textbox")
+        .append("foreignObject")
+        .html(function (d) {
+            return '<textarea id="subset" name="story" rows="10" cols="15">'
+        })
 
     d3.select("#toolbar").append("button")
-        .text("Export").on("click", function () {
+        .text("Subset").on("click", function () {
+            collapse(root);
+
+            strains = document.getElementById("subset").value.split("\n");
+            nodes = flattenDict(root);
+
+            for (let i = 0; i < strains.length; i++) {
+                if (strains[i] == "") return
+                var [strain, value] = strains[i].split(';');
+                console.log("Searching for '" + strain)
+
+                var d = nodes[strain]
+
+                if (d) {
+                    show(d)
+                    if (value) d.value = parseFloat(value)
+                } else {
+                    console.log("Could not find strain: " + strain)
+                }
+            }
+
+            update(root);
+            centerNode(root)
+
+        });
+
+        d3.select("#toolbar").append("text").text("   ")
+
+    d3.select("#toolbar").append("input")    
+        .attr("type","file")
+        .attr("id", "tableInput")
+        .attr("class","hideInput")
+        .on("change", handleFileSelect)
+    
+    d3.select("#toolbar").append("input")    
+        .attr("type","button")
+        .attr("id", "tableInput")
+        .attr("value", "Import Table")
+        .on("click", function () {
+            document.getElementById('tableInput').click()
+        })
+
+    // d3.select("#toolbar").append("button")
+    //     .text("Remove Hidden").on("click", function () {
+    //         removeHidden(root);
+    //         collapse(root);
+    //         expand(root);
+    //     });
+
+    d3.select("#toolbar").append("button")
+        .text("Export table")
+        .attr("class","labelAsButton")
+        .on("click", function () {
             strains = Object.keys(flattenDict(root, unaliased = false));
             document.getElementById("subset").value = strains.join("\n");
         });
+
+    d3.select("#toolbar").append("text").text("   ")
+
+    var select = d3.select("#toolbar")
+        .append("select")
+        .on("change", function () {
+
+            var select = d3.select("select").node().value;
+            if (select == "Locate strain") return
+
+            var find = flatten(root).find(function (d) {
+                if (d.compressed_name == select)
+                    return true;
+            });
+
+            show(find)
+            centerNode(find)
+
+            while (find.parent) {
+                find.color = "#e74c3c";
+                find = find.parent;
+            }
+
+            update(find)
+            removePaths()
+        });
+
+    select.append("option")
+        .attr("value", "Locate strain")
+        .attr("selected", "true")
+        .text("Locate strain");
+
+    nodes = []
+    nodeList.forEach(function (d) {
+        if (d.compressed_name) nodes.push(d.compressed_name)
+    });
+
+    nodes.sort().forEach(function (node) {
+        select.append("option")
+            .attr("value", node)
+            .text(node);
+    });
 
     d3.select("#toolbar").append("text").text("   ")
 
@@ -216,17 +276,12 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             centerNode(root)
         });
 
-    // d3.select("#toolbar").append("input")
-    //     .attr("type","file")
-    //     .text("Upload")
-    //     .on("change", handleFileSelect)
+    //#endregion Tool bar
 
-//#endregion Tool bar
-
-//#region Help bar
+    //#region Help bar
     d3.select("#helpbox").append("foreignObject")
-    .html(function (d) {
-        return 'Green nodes indicate groups.<br> \
+        .html(function (d) {
+            return 'Green nodes indicate groups.<br> \
         Yellow nodes are grouped as "Other".<br> \
         Red nodes are ignored.<br> \
         Blue nodes are new strains.<p> \
@@ -234,9 +289,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         <tr><td>CTRL + Left Click:</td><td>Collapse Node</td></tr> \
         <tr><td>ALT + Left Click:</td><td>Assign as "Other"</td></tr> \
         <tr><td>SHIFT + Left Click:</td><td>Ignore node</td></tr>'
-    })
-    
-//#endregion Help bar
+        })
+
+    //#endregion Help bar
 
 
     function handleFileSelect() {
@@ -372,6 +427,15 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         d._children = null;
     }
 
+    const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
+    const removePaths = async () => {
+        await wait(1000);
+        flatten(root).forEach(function (d) {
+            d.color = undefined;
+        })
+        update(root);
+    }
+
     function show(d) {
         while (d.parent) {
 
@@ -390,6 +454,11 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         }
         updateLinks(d);
         update(d);
+    }
+
+    function findNode(strain) {
+        nodes = flattenDict(root);
+        return nodes[strain]
     }
 
     function calculate(d, root = true) {
@@ -434,7 +503,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     // Function to center node when clicked/dropped so node doesn't get lost when collapsing/moving with large amount of children.
 
-    function centerNode(source) {
+    function centerNode(source, highlight = false) {
         scale = zoomListener.scale();
         x = -source.y0;
         y = -source.x0;
@@ -443,6 +512,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         d3.select('g').transition()
             .duration(duration)
             .attr("transform", "translate(" + x + "," + y + ")scale(" + scale + ")");
+
         zoomListener.scale(scale);
         zoomListener.translate([x, y]);
     }
@@ -489,16 +559,21 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     function click(d) {
         if (d3.event.defaultPrevented) return; // click suppressed
 
+        center = false
+
         if (d3.event.shiftKey) {
             toggleIgnore(d)
         } else if (d3.event.altKey) {
             toggleOther(d)
         } else {
             d = toggleNode(d, d3.event.ctrlKey);
+            center = true
         }
+
         updateLinks(d)
         update(d);
-        centerNode(d)
+        if (center) centerNode(d)
+        
     }
 
     function updateLinks(d) {
@@ -646,7 +721,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                     return "firebrick"
                 } else if (d.other) {
                     return "goldenrod"
-                } 
+                }
                 return "forestgreen"
             });
 
