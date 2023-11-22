@@ -27,7 +27,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 
 // Get JSON data
 //treeJSON = d3.json("https://raw.githubusercontent.com/MDU-PHL/pango-watch/main/tree/data.json", function(error, treeData) {
-treeJSON = d3.json("data_values.json", function(error, treeData) {
+treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
+
+//#region Setup
 
     // Calculate total nodes, max label length
     var totalNodes = 0;
@@ -47,6 +49,8 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
     var viewerWidth = $(document).width();
     var viewerHeight = $(document).height();
 
+
+
     var tree = d3.layout.tree()
         .size([viewerHeight, viewerWidth]);
 
@@ -57,7 +61,7 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         let node = nodeList[index];
         if (node.otherParents) {
             node.otherParents.forEach(parent => {
-                let parentNode = nodeList.filter(function(d) {
+                let parentNode = nodeList.filter(function (d) {
                     return d['name'] === parent;
                 })[0];
                 let link = new Object();
@@ -71,135 +75,182 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         }
     }
 
+//#endregion Setup
+
+//#region Node accessing
+
     // Returns a list of all nodes under the root.
     function flatten(root) {
         var nodes = [],
-          i = 0;
-  
+            i = 0;
+
         function recurse(node) {
-          if (node.children) node.children.forEach(recurse);
-          if (node._children) node._children.forEach(recurse);
-          if (!node.id) node.id = ++i;
-          nodes.push(node);
+            if (node.children) node.children.forEach(recurse);
+            if (node._children) node._children.forEach(recurse);
+            if (!node.id) node.id = ++i;
+            nodes.push(node);
         }
-  
+
         recurse(root);
         return nodes;
-      }
-
-      function flattenDict(root, unaliased = true, aliased = true) {
-        var nodes = {},
-          i = 0;
-  
-        function recurse(node) {
-          if (node.children) node.children.forEach(recurse);
-          if (node._children) node._children.forEach(recurse);
-          if (!node.id) node.id = ++i;
-          if (unaliased) nodes[node.name] = node;
-          if (aliased) nodes[node.compressed_name] = node;
-        }
-  
-        recurse(root);
-        return nodes;
-      }
-
-      function doReset(){
-          flatten(root).forEach(function(d) {
-            d.color = undefined;
-          })
-          expand(root)
-      }
-
-      function doCollapse(d){
-        collapse(d)
     }
 
-    
-    d3.select("#textbox")
-    .append("foreignObject")
-    .html(function(d) {
-      return '<textarea id="subset" name="story" rows="10" cols="15">'
-    })
+    function flattenDict(root, unaliased = true, aliased = true) {
+        var nodes = {},
+            i = 0;
 
-    d3.select("#toolbar").append("button")
-    .text("Subset").on("click", function(){
-        collapse(root);
-
-        strains = document.getElementById("subset").value .split("\n");   
-        nodes = flattenDict(root);
-
-        for (let i = 0; i < strains.length; i++) {
-            if (strains[i] == "") return
-            var [strain, value] = strains[i].split(';');
-            console.log("Searching for '" + strain)
-    
-            var d = nodes[strain]
-                   
-            if (d) {
-                show(d)
-                if (value) d.value = parseFloat(value)
-            } else {
-                console.log("Could not find strain: " + strain)
-            }
+        function recurse(node) {
+            if (node.children) node.children.forEach(recurse);
+            if (node._children) node._children.forEach(recurse);
+            if (!node.id) node.id = ++i;
+            if (unaliased) nodes[node.name] = node;
+            if (aliased) nodes[node.compressed_name] = node;
         }
 
-        update(root);
-        centerNode(root) 
+        recurse(root);
+        return nodes;
+    }
 
-    });
+//#endregion Node accessing
+
+//#region Tool bar
+
+    d3.select("#textbox")
+        .append("foreignObject")
+        .html(function (d) {
+            return '<textarea id="import" name="story" rows="10" cols="15">'
+        })
+       
+    d3.select("#toolbar").append("button")
+        .text("Import").on("click", function () {
+            collapse(root);
+
+            prevData = document.getElementById("import").value.split("\n");
+            prevGroups = prevData
+            nodes = flattenDict(root);
+
+            for (let i = 0; i < strains.length; i++) {
+                if (strains[i] == "") return
+                var [strain, value] = strains[i].split(';');
+                console.log("Searching for '" + strain)
+
+                var d = nodes[strain]
+
+                if (d) {
+                    show(d)
+                    if (value) d.value = parseFloat(value)
+                } else {
+                    console.log("Could not find strain: " + strain)
+                }
+            }
+
+            update(root);
+            centerNode(root)
+
+        });
+
+    // d3.select("#textbox")
+    //     .append("foreignObject")
+    //     .html(function (d) {
+    //         return '<textarea id="subset" name="story" rows="10" cols="15">'
+    //     })
+       
+    // d3.select("#toolbar").append("button")
+    //     .text("Subset").on("click", function () {
+    //         collapse(root);
+
+    //         strains = document.getElementById("subset").value.split("\n");
+    //         nodes = flattenDict(root);
+
+    //         for (let i = 0; i < strains.length; i++) {
+    //             if (strains[i] == "") return
+    //             var [strain, value] = strains[i].split(';');
+    //             console.log("Searching for '" + strain)
+
+    //             var d = nodes[strain]
+
+    //             if (d) {
+    //                 show(d)
+    //                 if (value) d.value = parseFloat(value)
+    //             } else {
+    //                 console.log("Could not find strain: " + strain)
+    //             }
+    //         }
+
+    //         update(root);
+    //         centerNode(root)
+
+    //     });
 
     d3.select("#toolbar").append("button")
-    .text("Remove Hidden").on("click", function(){
-        removeHidden(root);
-        collapse(root);
-        expand(root);
-    });
+        .text("Remove Hidden").on("click", function () {
+            removeHidden(root);
+            collapse(root);
+            expand(root);
+        });
 
     d3.select("#toolbar").append("button")
-    .text("Export").on("click", function(){
-        strains = Object.keys(flattenDict(root, unaliased = false));
-        document.getElementById("subset").value = strains.join("\n");
-    });
+        .text("Export").on("click", function () {
+            strains = Object.keys(flattenDict(root, unaliased = false));
+            document.getElementById("subset").value = strains.join("\n");
+        });
 
     d3.select("#toolbar").append("text").text("   ")
 
     d3.select("#toolbar").append("button")
-    .text("Recenter").on("click", function(){
-        centerNode(root)
-    });
-        
-    d3.select("#toolbar").append("button")
-    .text("Collapse").on("click", function(){
-        collapse(root)
-        update(root); 
-        centerNode(root)
-    });
+        .text("Recenter").on("click", function () {
+            centerNode(root)
+        });
 
     d3.select("#toolbar").append("button")
-    .text("Expand").on("click", function(){
-        expand(root)
-        update(root); 
-        centerNode(root)
-    });
-      
+        .text("Collapse").on("click", function () {
+            collapse(root)
+            update(root);
+            centerNode(root)
+        });
+
+    d3.select("#toolbar").append("button")
+        .text("Expand").on("click", function () {
+            expand(root)
+            update(root);
+            centerNode(root)
+        });
+
     // d3.select("#toolbar").append("input")
     //     .attr("type","file")
     //     .text("Upload")
     //     .on("change", handleFileSelect)
-        
+
+//#endregion Tool bar
+
+//#region Help bar
+    d3.select("#helpbox").append("foreignObject")
+    .html(function (d) {
+        return 'Green nodes indicate groups.<br> \
+        Yellow nodes are grouped as "Other".<br> \
+        Red nodes are ignored.<br> \
+        Blue nodes are new strains.<p> \
+        <table><tr><td>Left Click:</td><td>Un/collapse children</td></tr> \
+        <tr><td>CTRL + Left Click:</td><td>Collapse Node</td></tr> \
+        <tr><td>ALT + Left Click:</td><td>Assign as "Other"</td></tr> \
+        <tr><td>SHIFT + Left Click:</td><td>Ignore node</td></tr>'
+    })
+    
+//#endregion Help bar
+
 
     function handleFileSelect() {
         // Check for the various File API support.
         if (window.File && window.FileReader && window.FileList && window.Blob) {
-        // Great success! All the File APIs are supported.
+            // Great success! All the File APIs are supported.
         } else {
             alert('The File APIs are not fully supported in this browser.');
         }
-    
+
         var f = event.target.files[0]; // FileList object
         var reader = new FileReader();
-    
-        reader.onload = function(event) {
+
+        reader.onload = function (event) {
             load_d3(event.target.result)
         };
         // Read in the file as a data URL.
@@ -207,14 +258,14 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
     }
 
     function load_d3(fileHandler) {
-        d3.json(fileHandler, function(error, root) {
+        d3.json(fileHandler, function (error, root) {
             //do stuff
         });
     };
-    
+
     // define a d3 diagonal projection for use by the node paths later on.
     var diagonal = d3.svg.diagonal()
-        .projection(function(d) {
+        .projection(function (d) {
             return [d.y, d.x];
         });
 
@@ -234,11 +285,11 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
     }
 
     // Call visit function to establish maxLabelLength
-    visit(treeData, function(d) {
+    visit(treeData, function (d) {
         totalNodes++;
-        maxLabelLength = Math.max(d.compressed_name.length , maxLabelLength);
+        maxLabelLength = Math.max(d.compressed_name.length, maxLabelLength);
 
-    }, function(d) {
+    }, function (d) {
         return d.children && d.children.length > 0 ? d.children : null;
     });
 
@@ -246,7 +297,7 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
     // sort the tree according to the node names
 
     function sortTree() {
-        tree.sort(function(a, b) {
+        tree.sort(function (a, b) {
             return b.compressed_name.toLowerCase() < a.compressed_name.toLowerCase() ? 1 : -1;
         });
     }
@@ -274,7 +325,7 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
             d3.select(domNode).select('g.node').attr("transform", "translate(" + translateX + "," + translateY + ")");
             zoomListener.scale(zoomListener.scale());
             zoomListener.translate([translateX, translateY]);
-            panTimer = setTimeout(function() {
+            panTimer = setTimeout(function () {
                 pan(domNode, speed, direction);
             }, 50);
         }
@@ -299,24 +350,24 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
     // Helper functions for collapsing and expanding nodes.
 
     function collapse(d) {
-        if (d.children) {                      
+        if (d.children) {
             d._children = (d._children) ? d._children.concat(d.children) : d.children
-            d.children = null;    
-            d._children.forEach(collapse);        
+            d.children = null;
+            d._children.forEach(collapse);
         }
     }
 
     function expand(d) {
-        if (d._children) {    
+        if (d._children) {
             d.children = (d.children) ? d.children.concat(d._children) : d._children
-            d._children = null;     
-            d.children.forEach(expand);   
-        }   
+            d._children = null;
+            d.children.forEach(expand);
+        }
     }
 
     function removeHidden(d) {
-        if (d.children) {       
-            d.children.forEach(removeHidden);                 
+        if (d.children) {
+            d.children.forEach(removeHidden);
         }
         d._children = null;
     }
@@ -337,7 +388,7 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
 
             d = d.parent;
         }
-        updateLinks(d);  
+        updateLinks(d);
         update(d);
     }
 
@@ -345,8 +396,8 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
 
         return 0
 
-        childTotal = 0        
-        children = root ?  getHiddenChildren(d) : getAllChildren(d)
+        childTotal = 0
+        children = root ? getHiddenChildren(d) : getAllChildren(d)
 
         if (children) {
             children.forEach((child) => {
@@ -372,11 +423,11 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         return children
     }
 
-    var overCircle = function(d) {
+    var overCircle = function (d) {
         selectedNode = d;
         updateTempConnector();
     };
-    var outCircle = function(d) {
+    var outCircle = function (d) {
         selectedNode = null;
         updateTempConnector();
     };
@@ -403,8 +454,8 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
             collapse(d);
         } else if (d._children) {
             expand(d)
-        } 
-        
+        }
+
         if ((!d.children && !d._children) || collapseSelf) {
             d.parent.children = spliceByName(d, d.parent.children)
             d.parent._children = (d.parent._children) ? d.parent._children.concat([d]) : [d]
@@ -413,9 +464,19 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         return d;
     }
 
+    function toggleIgnore(d) {
+        d.ignore = !d.ignore
+        if (d.other) d.other = false
+    }
+
+    function toggleOther(d) {
+        d.other = !d.other
+        if (d.ignore) d.ignore = false
+    }
+
     function spliceByName(d, array) {
         if (array) {
-            array = array.filter(function(array) {
+            array = array.filter(function (array) {
                 return array.name !== d.name;
             })
         } else {
@@ -424,62 +485,48 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         return array
     }
 
-    // Toggle children on click.
-
+    // Clicking on nodes
     function click(d) {
         if (d3.event.defaultPrevented) return; // click suppressed
 
-        d = toggleNode(d, d3.event.ctrlKey);
+        if (d3.event.shiftKey) {
+            toggleIgnore(d)
+        } else if (d3.event.altKey) {
+            toggleOther(d)
+        } else {
+            d = toggleNode(d, d3.event.ctrlKey);
+        }
         updateLinks(d)
         update(d);
         centerNode(d)
     }
 
     function updateLinks(d) {
-        additionalLinks.forEach(function(link){
+        additionalLinks.forEach(function (link) {
             let sourceVisible = false;
             let targetVisible = false;
-            tree.nodes(root).filter(function(n) {
-                if(n["name"] == link._source.name){
+            tree.nodes(root).filter(function (n) {
+                if (n["name"] == link._source.name) {
                     sourceVisible = true;
                 }
-                if(n["name"] == link._target.name){
+                if (n["name"] == link._target.name) {
                     targetVisible = true;
                 }
             });
-            if(sourceVisible && targetVisible){
+            if (sourceVisible && targetVisible) {
                 link.source = link._source;
                 link.target = link._target;
             }
-            else if(!sourceVisible && targetVisible 
-                        || !sourceVisible && !targetVisible){
+            else if (!sourceVisible && targetVisible
+                || !sourceVisible && !targetVisible) {
                 link.source = d;
                 link.target = link.source;
             }
-            else if(sourceVisible && !targetVisible){
+            else if (sourceVisible && !targetVisible) {
                 link.source = link._source;
                 link.target = link.source;
             }
         });
-    }
-
-    function getGreenToRed(proportion){
-        percent = Math.min(proportion*100,100)
-        switch(true) {
-            case (percent == 0):
-                return "Gainsboro"
-            case (percent < 2.5):
-                return "green"
-            case (percent < 10):
-                return "yellow"
-            default:
-                return "red"
-        }
-
-        // percent = Math.min(proportion*200,100)
-        // r = percent < 50 ? 255 : Math.floor(255-(percent*2-100)*255/100);
-        // g = percent > 50 ? 255 : Math.floor((percent*2)*255/100);
-        // return 'rgb('+r+','+g+',0)';
     }
 
     function update(source) {
@@ -487,19 +534,19 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         // This prevents the layout looking squashed when new nodes are made visible or looking sparse when nodes are removed
         // This makes the layout more consistent.
         var levelWidth = [1];
-        var childCount = function(level, n) {
+        var childCount = function (level, n) {
 
             if (n.children && n.children.length > 0) {
                 if (levelWidth.length <= level + 1) levelWidth.push(0);
 
                 levelWidth[level + 1] += n.children.length;
-                n.children.forEach(function(d) {
+                n.children.forEach(function (d) {
                     childCount(level + 1, d);
                 });
             }
         };
         childCount(0, root);
-        var newHeight = d3.max(levelWidth) * 25; // 25 pixels per line  
+        var newHeight = d3.max(levelWidth) * 40; // 25 pixels per line  
         tree = tree.size([newHeight, viewerWidth]);
 
         // Compute the new tree layout.
@@ -507,7 +554,7 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
             links = tree.links(nodes);
 
         // Set widths between levels based on maxLabelLength.
-        nodes.forEach(function(d) {
+        nodes.forEach(function (d) {
             d.y = (d.depth * (maxLabelLength * 10)); //maxLabelLength * 10px
             // alternatively to keep a fixed scale one can set a fixed depth per level
             // Normalize for fixed-depth by commenting out below line
@@ -516,69 +563,47 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
 
         // Update the nodes…
         node = svgGroup.selectAll("g.node")
-            .data(nodes, function(d) {
+            .data(nodes, function (d) {
                 return d.id || (d.id = ++i);
             });
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("g")
             .attr("class", "node")
-            .attr("transform", function(d) {
+            .attr("transform", function (d) {
                 return "translate(" + source.y0 + "," + source.x0 + ")";
             })
             .on('click', click)
-            .on('mouseover', function(d) {
+            .on('mouseover', function (d) {
                 console.log(d);
                 tooltip.style("visibility", "visible")
-                  .html('Strain: ' + d.name + 
-                  '<br>Alias: ' + d.compressed_name + 
-                  '<br>Proportion: ' + calculate(d))
-              })
-              .on("mousemove", function() {
+                    .html('Strain: ' + d.name +
+                        '<br>Alias: ' + d.compressed_name +
+                        '<br>Nextclade: ' + d.nextstrain +
+                        '<br>Designation Date: ' + d.designationDate
+                    )
+            })
+            .on("mousemove", function () {
                 return tooltip.style("top", (d3.event.pageY + 10) + "px").style("left", (d3.event.pageX + 10) + "px");
-              })
-              .on("mouseout", function() {
+            })
+            .on("mouseout", function () {
                 return tooltip.style("visibility", "hidden");
-              });
-            // .on("mouseover", function(d) {
-            //     var g = d3.select(this); // The node
-            //     // The class is used to remove the additional text later
-            //     var info = g.append("rect")
-            //       .
-            //       .append('text')
-            //       .classed('info', true)
-            //       .style("fill", "#000")
-            //       .attr('x', -10)
-            //       .attr('y', -10)
-            //       .text(d.compressed_name);
-            //   })
-            //   .on("mouseout", function() {
-            //     // Remove the info text on mouse out.
-            //     d3.select(this).select('text.info').remove();
-            //   });
+            });
 
         nodeEnter.append("circle")
             .attr('class', 'nodeCircle')
             .attr("r", 0)
-            .style("stroke", function(d) {
-                console.log("setting color: " + d.name)
-                return getGreenToRed(calculate(d))
-            })
-            .style("fill", function(d) {
-                console.log("changing fill: " + d.name)
-                return d._children ? "WhiteSmoke" : "#fff";
-            });
 
         nodeEnter.append("text")
-            .attr("x", function(d) {
+            .attr("x", function (d) {
                 return d.children || d._children ? -10 : 10;
             })
             .attr("dy", ".35em")
             .attr('class', 'nodeText')
-            .attr("text-anchor", function(d) {
+            .attr("text-anchor", function (d) {
                 return d.children || d._children ? "end" : "start";
             })
-            .text(function(d) {
+            .text(function (d) {
                 return d.compressed_name;
             })
             .style("fill-opacity", 0);
@@ -588,42 +613,47 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
             .attr('class', 'ghostCircle')
             .attr("r", 30)
             .attr("opacity", 0.2) // change this to zero to hide the target area
-        .style("fill", "red")
+            .style("fill", "red")
             .attr('pointer-events', 'mouseover')
-            .on("mouseover", function(node) {
+            .on("mouseover", function (node) {
                 overCircle(node);
             })
-            .on("mouseout", function(node) {
+            .on("mouseout", function (node) {
                 outCircle(node);
             });
 
         // Update the text to reflect whether node has children or not.
         node.select('text')
-            .attr("x", function(d) {
+            .attr("x", function (d) {
                 return -10 //d.children || d._children ? -10 : 10;
             })
-            .attr("text-anchor", function(d) {
+            .attr("text-anchor", function (d) {
                 return "end" //d.children || d._children ? "end" : "start";
             })
-            .text(function(d) {
+            .text(function (d) {
                 return d.compressed_name;
             });
 
         // Change the circle fill depending on whether it has children and is collapsed
         node.select("circle.nodeCircle")
-            .attr("r", 4.5)
-            .style("stroke", function(d) {
-                console.log("setting color: " + d.name)
+            .attr("r", 6)
+            .style("stroke", function (d) {
+                // console.log("setting color: " + d.name)
                 return d._children ? "black" : "white";
             })
-            .style("fill", function(d) {
-                return getGreenToRed(calculate(d));
+            .style("fill", function (d) {
+                if (d.ignore) {
+                    return "firebrick"
+                } else if (d.other) {
+                    return "goldenrod"
+                } 
+                return "forestgreen"
             });
 
         // Transition nodes to their new position.
         var nodeUpdate = node.transition()
             .duration(duration)
-            .attr("transform", function(d) {
+            .attr("transform", function (d) {
                 return "translate(" + d.y + "," + d.x + ")";
             });
 
@@ -634,7 +664,7 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
             .duration(duration)
-            .attr("transform", function(d) {
+            .attr("transform", function (d) {
                 return "translate(" + source.y + "," + source.x + ")";
             })
             .remove();
@@ -647,14 +677,14 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
 
         // Update the links…
         var link = svgGroup.selectAll("path.link")
-            .data(links, function(d) {
+            .data(links, function (d) {
                 return d.target.id;
             });
 
         // Enter any new links at the parent's previous position.
         link.enter().insert("path", "g")
             .attr("class", "link")
-            .attr("d", function(d) {
+            .attr("d", function (d) {
                 var o = {
                     x: source.x0,
                     y: source.y0
@@ -664,21 +694,21 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
                     target: o
                 });
             });
-        
-        d3.selectAll("path").style("stroke", function(d) {
-                if (d.target.color) {
-                  return d.target.color
-                } else {
-                  return null
-                }
-              })
-        d3.selectAll("path").style("stroke-width", function(d) {
-                if (d.target.color) {
-                  return '4px'
-                } else {
-                  return null
-                }
-              })
+
+        d3.selectAll("path").style("stroke", function (d) {
+            if (d.target.color) {
+                return d.target.color
+            } else {
+                return null
+            }
+        })
+        d3.selectAll("path").style("stroke-width", function (d) {
+            if (d.target.color) {
+                return '4px'
+            } else {
+                return null
+            }
+        })
         // Transition links to their new position.
         link.transition()
             .duration(duration)
@@ -687,7 +717,7 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
         // Transition exiting nodes to the parent's new position.
         link.exit().transition()
             .duration(duration)
-            .attr("d", function(d) {
+            .attr("d", function (d) {
                 var o = {
                     x: source.x,
                     y: source.y
@@ -698,32 +728,32 @@ treeJSON = d3.json("data_values.json", function(error, treeData) {
                 });
             })
             .remove();
-        
+
         // ======== add additional links (mpLinks) ========
         let mpLink = svgGroup.selectAll("path.mpLink")
-        .data(additionalLinks);
+            .data(additionalLinks);
 
         mpLink.enter().insert("path", "g")
-        .attr("class", "mpLink")
-        .attr("d", function(d) {
-        var o = {x: source.x0, y: source.y0};
-        return diagonal({source: o, target: o});
-        });
+            .attr("class", "mpLink")
+            .attr("d", function (d) {
+                var o = { x: source.x0, y: source.y0 };
+                return diagonal({ source: o, target: o });
+            });
 
         mpLink.transition()
-        .duration(duration)
-        .attr("d", diagonal)
+            .duration(duration)
+            .attr("d", diagonal)
 
         mpLink.exit().transition()
-        .duration(duration)
-        .attr("d", function (d) {
-            let o = { x: source.x, y: source.y };
-            return diagonal({ source: o, target: o });
-        })
-        .remove();
+            .duration(duration)
+            .attr("d", function (d) {
+                let o = { x: source.x, y: source.y };
+                return diagonal({ source: o, target: o });
+            })
+            .remove();
 
         // Stash the old positions for transition.
-        nodes.forEach(function(d) {
+        nodes.forEach(function (d) {
             d.x0 = d.x;
             d.y0 = d.y;
         });
