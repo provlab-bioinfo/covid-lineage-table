@@ -6642,7 +6642,14 @@
                                                                                                                                 },
                                                                                                                                 {
                                                                                                                                     "name": "XBB.1.5.102.1.2",
-                                                                                                                                    "children": [],
+                                                                                                                                    "children": [
+                                                                                                                                        {
+                                                                                                                                            "name": "XBB.1.5.102.1.2.1",
+                                                                                                                                            "children": [],
+                                                                                                                                            "compressed_name": "JD.1.2.1",
+                                                                                                                                            "group": 147
+                                                                                                                                        }
+                                                                                                                                    ],
                                                                                                                                     "compressed_name": "JD.1.2",
                                                                                                                                     "group": 147
                                                                                                                                 }
@@ -7848,6 +7855,18 @@
                                                                                                                                                     "group": 147
                                                                                                                                                 },
                                                                                                                                                 {
+                                                                                                                                                    "name": "XBB.1.9.2.5.1.1.21",
+                                                                                                                                                    "children": [],
+                                                                                                                                                    "compressed_name": "HK.21",
+                                                                                                                                                    "group": 147
+                                                                                                                                                },
+                                                                                                                                                {
+                                                                                                                                                    "name": "XBB.1.9.2.5.1.1.22",
+                                                                                                                                                    "children": [],
+                                                                                                                                                    "compressed_name": "HK.22",
+                                                                                                                                                    "group": 147
+                                                                                                                                                },
+                                                                                                                                                {
                                                                                                                                                     "name": "XCN",
                                                                                                                                                     "children": [],
                                                                                                                                                     "compressed_name": "XCN",
@@ -7898,6 +7917,12 @@
                                                                                                                                                             "children": [],
                                                                                                                                                             "compressed_name": "JG.3.1",
                                                                                                                                                             "group": 147
+                                                                                                                                                        },
+                                                                                                                                                        {
+                                                                                                                                                            "name": "XBB.1.9.2.5.1.3.3.2",
+                                                                                                                                                            "children": [],
+                                                                                                                                                            "compressed_name": "JG.3.2",
+                                                                                                                                                            "group": 147
                                                                                                                                                         }
                                                                                                                                                     ],
                                                                                                                                                     "compressed_name": "JG.3",
@@ -7908,7 +7933,14 @@
                                                                                                                                                     "children": [
                                                                                                                                                         {
                                                                                                                                                             "name": "XCT",
-                                                                                                                                                            "children": [],
+                                                                                                                                                            "children": [
+                                                                                                                                                                {
+                                                                                                                                                                    "name": "XCT.1",
+                                                                                                                                                                    "children": [],
+                                                                                                                                                                    "compressed_name": "XCT.1",
+                                                                                                                                                                    "group": 147
+                                                                                                                                                                }
+                                                                                                                                                            ],
                                                                                                                                                             "compressed_name": "XCT",
                                                                                                                                                             "otherParents": [
                                                                                                                                                                 "B.1.1.529.2.75.3.4.1.1.1.1.1.7.1"
@@ -8684,6 +8716,12 @@
                                                                                                                     "name": "XBB.1.16.25",
                                                                                                                     "children": [],
                                                                                                                     "compressed_name": "XBB.1.16.25",
+                                                                                                                    "group": 147
+                                                                                                                },
+                                                                                                                {
+                                                                                                                    "name": "XBB.1.16.26",
+                                                                                                                    "children": [],
+                                                                                                                    "compressed_name": "XBB.1.16.26",
                                                                                                                     "group": 147
                                                                                                                 }
                                                                                                             ],
@@ -11751,6 +11789,24 @@
                                                                     "name": "B.1.1.529.2.86.1.3",
                                                                     "children": [],
                                                                     "compressed_name": "JN.3",
+                                                                    "group": 64
+                                                                },
+                                                                {
+                                                                    "name": "B.1.1.529.2.86.1.4",
+                                                                    "children": [],
+                                                                    "compressed_name": "JN.4",
+                                                                    "group": 64
+                                                                },
+                                                                {
+                                                                    "name": "B.1.1.529.2.86.1.5",
+                                                                    "children": [],
+                                                                    "compressed_name": "JN.5",
+                                                                    "group": 64
+                                                                },
+                                                                {
+                                                                    "name": "B.1.1.529.2.86.1.6",
+                                                                    "children": [],
+                                                                    "compressed_name": "JN.6",
                                                                     "group": 64
                                                                 }
                                                             ],

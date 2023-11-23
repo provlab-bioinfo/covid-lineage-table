@@ -10,6 +10,8 @@ def addData(node):
     strain = node.get("compressed_name", None)
     node["nextstrain"] = summary.get(strain,{}).get("nextstrainClade","None")
     node["designationDate"] = summary.get(strain,{}).get("designationDate","None")
+    node["ignore"] = False
+    node["other"] = False
     children = []
     for child in node["children"]:
         children.append(addData(child))

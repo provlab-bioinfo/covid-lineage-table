@@ -34,12 +34,11 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     // Calculate total nodes, max label length
     var totalNodes = 0;
     var maxLabelLength = 0;
-    // variables for drag/drop
-    var selectedNode = null;
-    var draggingNode = null;
+
     // panning variables
     var panSpeed = 200;
     var panBoundary = 20; // Within 20px from edges will pan when dragging.
+
     // Misc. variables
     var i = 0;
     var duration = 300;
@@ -48,8 +47,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     // size of the diagram
     var viewerWidth = $(document).width();
     var viewerHeight = $(document).height();
-
-
 
     var tree = d3.layout.tree()
         .size([viewerHeight, viewerWidth]);
@@ -80,7 +77,10 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     //#region Node accessing
 
     // Returns a list of all nodes under the root.
-    function flatten(root) {
+    function flatten(node) {
+
+        if (node == root && this.flattenCache) return this.flattenCache
+
         var nodes = [],
             i = 0;
 
@@ -91,26 +91,37 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             nodes.push(node);
         }
 
-        recurse(root);
+        recurse(node);
+        if (node == root) flattenCache = nodes
         return nodes;
     }
 
-    function flattenDict(root, unaliased = true, aliased = true) {
-        var nodes = {},
-            i = 0;
+    function flattenDict(node, unaliased = true, aliased = true) {        
+        
+        if (node == root && unaliased && aliased && this.flattenDictCache) {
+            return this.flattenDictCache
+        } else {        
+            var nodes = {}, i = 0;
 
-        function recurse(node) {
-            if (node.children) node.children.forEach(recurse);
-            if (node._children) node._children.forEach(recurse);
-            if (!node.id) node.id = ++i;
-            if (unaliased) nodes[node.name] = node;
-            if (aliased) nodes[node.compressed_name] = node;
+            function recurse(node) {
+                if (node.children) node.children.forEach(recurse);
+                if (node._children) node._children.forEach(recurse);
+                if (!node.id) node.id = ++i;
+                if (unaliased) nodes[node.name] = node;
+                if (aliased) nodes[node.compressed_name] = node;
+            }
+
+            recurse(node);
+            if (node == root && unaliased && aliased) flattenDictCache = nodes
+            return nodes;
         }
-
-        recurse(root);
-        return nodes;
     }
-
+    
+    function findNode(strain) {
+        nodes = flattenDict(root);
+        return nodes[strain]
+    }
+    
     //#endregion Node accessing
 
     //#region Tool bar
@@ -218,24 +229,19 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     var select = d3.select("#toolbar")
         .append("select")
         .on("change", function () {
-
             var select = d3.select("select").node().value;
             if (select == "Locate strain") return
 
-            var find = flatten(root).find(function (d) {
-                if (d.compressed_name == select)
-                    return true;
-            });
+            var node = findNode(select)
+            show(node)
+            centerNode(node)
 
-            show(find)
-            centerNode(find)
-
-            while (find.parent) {
-                find.color = "#e74c3c";
-                find = find.parent;
+            while (node.parent) {
+                node.color = "#e74c3c";
+                node = node.parent;
             }
 
-            update(find)
+            update(node)
             removePaths()
         });
 
@@ -281,14 +287,19 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     //#region Help bar
     d3.select("#helpbox").append("foreignObject")
         .html(function (d) {
-            return 'Green nodes indicate groups.<br> \
-        Yellow nodes are grouped as "Other".<br> \
-        Red nodes are ignored.<br> \
-        Blue nodes are new strains.<p> \
-        <table><tr><td>Left Click:</td><td>Un/collapse children</td></tr> \
-        <tr><td>CTRL + Left Click:</td><td>Collapse Node</td></tr> \
-        <tr><td>ALT + Left Click:</td><td>Assign as "Other"</td></tr> \
-        <tr><td>SHIFT + Left Click:</td><td>Ignore node</td></tr>'
+            // <font color='white' style=''>Green</font> nodes indicate groups.<br> \
+            // <font color='white' style=''>Yellow</font> nodes are grouped as 'Other'.<br> \
+            // <font color='white' style=''>Red</font> nodes are ignored.<br> \
+            // <font color='white' style=''>Blue</font> nodes are new strains.<p> \
+            return "<table><tr><td style='text-align: center; background-color:forestgreen;'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
+            <tr><td style='text-align: center; background-color:goldenrod;'><font color='white'>Yellow</font></td><td>&nbsp&nbsp&nbsp'Other' strains</td></tr> \
+            <tr><td style='text-align: center; background-color:firebrick;'><font color='white'>Red</font></td><td>&nbsp&nbsp&nbspIgnored strains</td></tr> \
+            <tr><td style='text-align: center; background-color:DodgerBlue;'><font color='white'>Blue</font></td><td>&nbsp&nbsp&nbspNew strains</td></tr> \
+            <tr><td><br /></td></tr> \
+            <tr><td style='text-align: right;'>Left Click:</td><td>Un/collapse children</td></tr> \
+            <tr><td style='text-align: right;'>CTRL + Click:</td><td>Collapse Node</td></tr> \
+            <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \
+            <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr></table>"
         })
 
     //#endregion Help bar
@@ -454,11 +465,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         }
         updateLinks(d);
         update(d);
-    }
-
-    function findNode(strain) {
-        nodes = flattenDict(root);
-        return nodes[strain]
     }
 
     function calculate(d, root = true) {
