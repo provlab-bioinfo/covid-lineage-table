@@ -9,13 +9,13 @@ def addData(node):
     """    
     strain = node.get("compressed_name", None)
     node["nextstrain"] = summary.get(strain,{}).get("nextstrainClade","None")
-    node["designationDate"] = summary.get(strain,{}).get("designationDate","None")
-    node["ignore"] = False
-    node["other"] = False
+    node["designationDate"] = summary.get(strain,{}).get("designationDate","")
+    if (node["designationDate"] == ""): node["designationDate"] = "Unknown"
     children = []
     for child in node["children"]:
         children.append(addData(child))
     node["children"] = children
+    del node['group']
     return node
 
 # Base data

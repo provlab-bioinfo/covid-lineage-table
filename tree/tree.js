@@ -29,7 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 //treeJSON = d3.json("https://raw.githubusercontent.com/MDU-PHL/pango-watch/main/tree/data.json", function(error, treeData) {
 treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
-    //#region Setup
+    //#region Initial setup
 
     // Calculate total nodes, max label length
     var totalNodes = 0;
@@ -41,7 +41,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     // Misc. variables
     var i = 0;
-    var duration = 300;
+    var duration = 500;
     var root;
 
     // size of the diagram
@@ -52,6 +52,15 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         .size([viewerHeight, viewerWidth]);
 
     var nodeList = tree.nodes(treeData);
+
+    nodeList.forEach(add_fields)
+
+    function add_fields(node) {
+        node.ignore = false
+        node.other = false
+        node.grouping = node.compressed_name
+        node.hidden = false
+    }
 
     let additionalLinks = []
     for (let index = 0; index < nodeList.length; index++) {
@@ -67,64 +76,13 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                 link._source = parentNode; // backup source
                 link._target = node; // backup target
                 additionalLinks.push(link)
-
             })
         }
     }
 
-    //#endregion Setup
+    //#endregion Initial setup
 
-    //#region Node accessing
-
-    // Returns a list of all nodes under the root.
-    function flatten(node) {
-
-        if (node == root && this.flattenCache) return this.flattenCache
-
-        var nodes = [],
-            i = 0;
-
-        function recurse(node) {
-            if (node.children) node.children.forEach(recurse);
-            if (node._children) node._children.forEach(recurse);
-            if (!node.id) node.id = ++i;
-            nodes.push(node);
-        }
-
-        recurse(node);
-        if (node == root) flattenCache = nodes
-        return nodes;
-    }
-
-    function flattenDict(node, unaliased = true, aliased = true) {        
-        
-        if (node == root && unaliased && aliased && this.flattenDictCache) {
-            return this.flattenDictCache
-        } else {        
-            var nodes = {}, i = 0;
-
-            function recurse(node) {
-                if (node.children) node.children.forEach(recurse);
-                if (node._children) node._children.forEach(recurse);
-                if (!node.id) node.id = ++i;
-                if (unaliased) nodes[node.name] = node;
-                if (aliased) nodes[node.compressed_name] = node;
-            }
-
-            recurse(node);
-            if (node == root && unaliased && aliased) flattenDictCache = nodes
-            return nodes;
-        }
-    }
-    
-    function findNode(strain) {
-        nodes = flattenDict(root);
-        return nodes[strain]
-    }
-    
-    //#endregion Node accessing
-
-    //#region Tool bar
+    //#region UI
 
     // d3.select("#textbox")
     //     .append("foreignObject")
@@ -163,7 +121,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     d3.select("#textbox")
         .append("foreignObject")
         .html(function (d) {
-            return '<textarea id="subset" name="story" rows="10" cols="15">'
+            return '<textarea id="subset" rows="10" cols="15">AY.113\nP.3\nB.1.1.202\nB.1.23\nCC.1\nXAY\nB.1.36\nXBB.2.3.17\nBA.2.75.4\nB.1.581\nB.1.36.17\nB.1.112\nB.1.177.12\nEF.1.1\nB.1.1.426\nC.32\nFL.2.1\nXBB.1.18\nBA.2.23\nB.1.1.349\nB.1.348\nB.1.438.2\nXAF\nGD.1\nBA.2.3.5\nBA.5.2.21\nB.4.4\nXB\nB.1.36.19\nAY.127.3</textarea>'
         })
 
     d3.select("#toolbar").append("button")
@@ -181,16 +139,15 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                 var d = nodes[strain]
 
                 if (d) {
-                    show(d)
+                    show(d, redraw = false)
                     if (value) d.value = parseFloat(value)
                 } else {
                     console.log("Could not find strain: " + strain)
                 }
             }
 
-            update(root);
+            updateTree(root)
             centerNode(root)
-
         });
 
         d3.select("#toolbar").append("text").text("   ")
@@ -220,7 +177,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         .text("Export table")
         .attr("class","labelAsButton")
         .on("click", function () {
-            strains = Object.keys(flattenDict(root, unaliased = false));
+            strains = getAllGroupings()//Object.keys(flattenDict(root, unaliased = false));
             document.getElementById("subset").value = strains.join("\n");
         });
 
@@ -282,15 +239,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             centerNode(root)
         });
 
-    //#endregion Tool bar
-
-    //#region Help bar
     d3.select("#helpbox").append("foreignObject")
         .html(function (d) {
-            // <font color='white' style=''>Green</font> nodes indicate groups.<br> \
-            // <font color='white' style=''>Yellow</font> nodes are grouped as 'Other'.<br> \
-            // <font color='white' style=''>Red</font> nodes are ignored.<br> \
-            // <font color='white' style=''>Blue</font> nodes are new strains.<p> \
             return "<table><tr><td style='text-align: center; background-color:forestgreen;'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
             <tr><td style='text-align: center; background-color:goldenrod;'><font color='white'>Yellow</font></td><td>&nbsp&nbsp&nbsp'Other' strains</td></tr> \
             <tr><td style='text-align: center; background-color:firebrick;'><font color='white'>Red</font></td><td>&nbsp&nbsp&nbspIgnored strains</td></tr> \
@@ -302,9 +252,17 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr></table>"
         })
 
-    //#endregion Help bar
+    
+    var tooltip = d3.select("body")
+        .append("tspan")
+        .attr("class", "my-tooltip") //add the tooltip class
+        .style("position", "absolute")
+        .style("z-index", "10")
+        .style("visibility", "hidden");
 
+    //#endregion UI
 
+    //#region File input
     function handleFileSelect() {
         // Check for the various File API support.
         if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -323,6 +281,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         reader.readAsDataURL(f);
     }
 
+    //#endregion File input
+
+    //#region D3.js
     function load_d3(fileHandler) {
         d3.json(fileHandler, function (error, root) {
             //do stuff
@@ -413,8 +374,80 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         .attr("class", "overlay")
         .call(zoomListener);
 
-    // Helper functions for collapsing and expanding nodes.
+    //#endregion D3.js setup
 
+    //#region Node search
+    function flatten(node) {
+
+        if (node == root && this.flattenCache) return this.flattenCache
+
+        var nodes = [],
+            i = 0;
+
+        function recurse(node) {
+            getAllChildren(node).forEach(recurse);
+            if (!node.id) node.id = ++i;
+            nodes.push(node);
+        }
+
+        recurse(node);
+        if (node == root) flattenCache = nodes
+        return nodes;
+    }
+
+    function flattenDict(node, unaliased = true, aliased = true) {        
+        
+        if (node == root && unaliased && aliased && this.flattenDictCache) {
+            return this.flattenDictCache
+        } else {        
+            var nodes = {}, i = 0;
+
+            function recurse(node) {
+                getAllChildren(node).forEach(recurse);
+                if (!node.id) node.id = ++i;
+                if (unaliased) nodes[node.name] = node;
+                if (aliased) nodes[node.compressed_name] = node;
+            }
+
+            recurse(node);
+            if (node == root && unaliased && aliased) flattenDictCache = nodes
+            return nodes;
+        }
+    }
+    
+    function findNode(strain) {
+        nodes = flattenDict(root);
+        return nodes[strain]
+    }
+    
+    function getAllGroupings() {
+        var nodes = [], i = 0;
+
+        function recurse(node) {
+            console.log(node.compressed_name)
+            getVisibleChildren(node).forEach(recurse);
+            if (!node.id) node.id = ++i;
+            if (!node.ignore) nodes.push(node.compressed_name)
+        }
+
+        recurse(root);
+        console.log(nodes)
+        return nodes;
+    }    
+
+    function getVisibleChildren(d) {
+        return (d.children) ? d.children : []
+    }
+
+    function getHiddenChildren(d) {
+        return (d._children) ? d._children : []
+    }
+
+    function getAllChildren(d) {
+        return getVisibleChildren(d).concat(getHiddenChildren(d))
+    }
+
+    //#region Node actions
     function collapse(d) {
         if (d.children) {
             d._children = (d._children) ? d._children.concat(d.children) : d.children
@@ -440,62 +473,24 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
     const removePaths = async () => {
-        await wait(1000);
+        await wait(2000);
         flatten(root).forEach(function (d) {
             d.color = undefined;
         })
         update(root);
     }
 
-    function show(d) {
+    function show(d, redraw = true) {
         while (d.parent) {
-
-            // console.log("d:" + d.name)
-            // console.log("d.parent:" + d.parent.name)
-            // console.log("d.parent._children (before):" + (d.parent._children ? d.parent._children.map(a => a.name) : ""))
-            // console.log("d.parent.children (before):" + (d.parent.children ? d.parent.children.map(a => a.name) : ""))
-
             d.parent._children = spliceByName(d, d.parent._children)
             d.parent.children = spliceByName(d, d.parent.children).concat(d)
-
-            // console.log("d.parent._children (after):" + (d.parent._children ? d.parent._children.map(a => a.name) : ""))
-            // console.log("d.parent.children (after):" + (d.parent.children ? d.parent.children.map(a => a.name) : ""))
-
             d = d.parent;
         }
-        updateLinks(d);
-        update(d);
-    }
 
-    function calculate(d, root = true) {
-
-        return 0
-
-        childTotal = 0
-        children = root ? getHiddenChildren(d) : getAllChildren(d)
-
-        if (children) {
-            children.forEach((child) => {
-                childTotal += calculate(child, root = false)
-            });
+        if (redraw) {
+            updateLinks(d);
+            update(d);
         }
-
-        return childTotal + d.value
-    }
-
-    function getVisibleChildren(d) {
-        return (d.children) ? d.children : []
-    }
-
-    function getHiddenChildren(d) {
-        return (d._children) ? d._children : []
-    }
-
-    function getAllChildren(d) {
-        children = []
-        if (d._children) children = children.concat(d._children)
-        if (d.children) children = children.concat(d.children)
-        return children
     }
 
     var overCircle = function (d) {
@@ -506,8 +501,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         selectedNode = null;
         updateTempConnector();
     };
-
-    // Function to center node when clicked/dropped so node doesn't get lost when collapsing/moving with large amount of children.
 
     function centerNode(source, highlight = false) {
         scale = zoomListener.scale();
@@ -522,8 +515,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         zoomListener.scale(scale);
         zoomListener.translate([x, y]);
     }
-
-    // Toggle children function
 
     function toggleNode(d, collapseSelf = false) {
         if (d.children) {
@@ -581,8 +572,13 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         if (center) centerNode(d)
         
     }
+    
+    //#endregion Node actions
+
+    //#region Updates
 
     function updateLinks(d) {
+        console.log(additionalLinks)
         additionalLinks.forEach(function (link) {
             let sourceVisible = false;
             let targetVisible = false;
@@ -595,6 +591,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                 }
             });
             if (sourceVisible && targetVisible) {
+                console.log("")
                 link.source = link._source;
                 link.target = link._target;
             }
@@ -608,6 +605,12 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                 link.target = link.source;
             }
         });
+    }
+
+    function updateTree(node) {
+        update(node)
+        updateLinks(node)
+        if (node.children) node.children.forEach(updateTree)
     }
 
     function update(source) {
@@ -840,12 +843,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         });
     }
 
-    var tooltip = d3.select("body")
-        .append("tspan")
-        .attr("class", "my-tooltip") //add the tooltip class
-        .style("position", "absolute")
-        .style("z-index", "10")
-        .style("visibility", "hidden");
+    //#endregion Updates
+
+    //#region Final setup
 
     // Append a group which holds all nodes and which the zoom Listener can act upon.
     var svgGroup = baseSvg.append("g");
@@ -858,4 +858,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     // Layout the tree initially and center on the root node.
     update(root);
     centerNode(root);
+
+    //#endregion Updates
 });
