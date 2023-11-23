@@ -58,8 +58,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     function add_fields(node) {
         node.ignore = false
         node.other = false
-        node.grouping = node.compressed_name
+        node.grouping = null
         node.hidden = false
+        if (!node.children) node.children = []
     }
 
     let additionalLinks = []
@@ -83,40 +84,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     //#endregion Initial setup
 
     //#region UI
-
-    // d3.select("#textbox")
-    //     .append("foreignObject")
-    //     .html(function (d) {
-    //         return '<textarea id="import" name="story" rows="10" cols="15">'
-    //     })
-
-    // d3.select("#toolbar").append("button")
-    //     .text("Import table").on("click", function () {
-    //         collapse(root);
-
-    //         prevData = document.getElementById("import").value.split("\n");
-    //         prevGroups = prevData
-    //         nodes = flattenDict(root);
-
-    //         for (let i = 0; i < strains.length; i++) {
-    //             if (strains[i] == "") return
-    //             var [strain, value] = strains[i].split(';');
-    //             console.log("Searching for '" + strain)
-
-    //             var d = nodes[strain]
-
-    //             if (d) {
-    //                 show(d)
-    //                 if (value) d.value = parseFloat(value)
-    //             } else {
-    //                 console.log("Could not find strain: " + strain)
-    //             }
-    //         }
-
-    //         update(root);
-    //         centerNode(root)
-
-    //     });
 
     d3.select("#textbox")
         .append("foreignObject")
@@ -239,6 +206,11 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             centerNode(root)
         });
 
+    d3.select("#toolbar").append("button")
+        .text("Group").on("click", function () {
+            addGroupings(root)
+        });
+
     d3.select("#helpbox").append("foreignObject")
         .html(function (d) {
             return "<table><tr><td style='text-align: center; background-color:forestgreen;'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
@@ -280,6 +252,27 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         // Read in the file as a data URL.
         reader.readAsDataURL(f);
     }
+
+    function addGroupings(d) {
+
+
+        console.log("checking")
+        console.log(d.name)
+
+        if (!d.parent) {
+            d.grouping = d.compressed_name
+        } else if (d.hidden || d.ignore) {
+            d.grouping = d.parent.grouping
+        } else if (d.other) {
+            d.grouping = "Other"
+        } else {
+            d.grouping = d.compressed_name
+        }
+
+        getAllChildren(d).forEach(addGroupings)
+
+    }
+
 
     //#endregion File input
 
@@ -451,16 +444,18 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     function collapse(d) {
         if (d.children) {
             d._children = (d._children) ? d._children.concat(d.children) : d.children
-            d.children = null;
-            d._children.forEach(collapse);
+            d.children = null
+            d._children.forEach(collapse)
+            d._children.map((child) => child.hidden = true)
         }
     }
 
     function expand(d) {
         if (d._children) {
             d.children = (d.children) ? d.children.concat(d._children) : d._children
-            d._children = null;
-            d.children.forEach(expand);
+            d._children = null
+            d.children.forEach(expand)
+            d.children.map((child) => child.hidden = false)
         }
     }
 
@@ -482,6 +477,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     function show(d, redraw = true) {
         while (d.parent) {
+            d.hidden = false
             d.parent._children = spliceByName(d, d.parent._children)
             d.parent.children = spliceByName(d, d.parent.children).concat(d)
             d = d.parent;
@@ -526,6 +522,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         if ((!d.children && !d._children) || collapseSelf) {
             d.parent.children = spliceByName(d, d.parent.children)
             d.parent._children = (d.parent._children) ? d.parent._children.concat([d]) : [d]
+            d.hidden = true
         }
 
         return d;
@@ -664,7 +661,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                     .html('Strain: ' + d.name +
                         '<br>Alias: ' + d.compressed_name +
                         '<br>Nextclade: ' + d.nextstrain +
-                        '<br>Designation Date: ' + d.designationDate
+                        '<br>Designation Date: ' + d.designationDate +
+                        '<br>Hidden: ' + d.hidden + 
+                        '<br>Grouping: ' + d.grouping
                     )
             })
             .on("mousemove", function () {
