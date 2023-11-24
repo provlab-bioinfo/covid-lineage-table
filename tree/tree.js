@@ -93,27 +93,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     d3.select("#toolbar").append("button")
         .text("Subset").on("click", function () {
-            collapse(root);
-
             strains = document.getElementById("subset").value.split("\n");
-            nodes = flattenDict(root);
-
-            for (let i = 0; i < strains.length; i++) {
-                if (strains[i] == "") return
-                var [strain, value] = strains[i].split(';');
-
-                var d = nodes[strain]
-
-                if (d) {
-                    show(d, redraw = false)
-                    if (value) d.value = parseFloat(value)
-                } else {
-                    console.log("Could not find strain: " + strain)
-                }
-            }
-
-            updateTree(root)
-            centerNode(root)
+            showStrains(strains)
         });
 
         d3.select("#toolbar").append("text").text("   ")
@@ -143,9 +124,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         .text("Export table")
         .attr("class","labelAsButton")
         .on("click", function () {
-            generateTable()
-            // strains = getAllGroupings()//Object.keys(flattenDict(root, unaliased = false));
-            // document.getElementById("subset").value = strains.join("\n");
+            exportTable()
         });
 
     d3.select("#toolbar").append("text").text("   ")
@@ -242,44 +221,81 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         } else {
             alert('The File APIs are not fully supported in this browser.');
         }
+        
+        var reader = new FileReader(); 
+        var file = document.querySelector('input[type=file]').files[0];      
+        reader.addEventListener("load", parseFile, false);
+        if (file) {
+            reader.readAsText(file);
+        }      
 
-        var f = event.target.files[0]; // FileList object
-        var reader = new FileReader();
-
-        reader.onload = function (event) {
-            load_d3(event.target.result)
-        };
-        // Read in the file as a data URL.
-        reader.readAsDataURL(f);
-    }
-
-    function addGroupings(d) {
-
-        if (!d.parent) {
-            d.grouping = d.compressed_name
-        } else if (d.hidden || d.ignore) {
-            d.grouping = d.parent.grouping
-        } else if (d.other) {
-            d.grouping = "Other"
-        } else {
-            d.grouping = d.compressed_name
+        function parseFile() {
+            var data = d3.csv.parse(reader.result, function(d){
+                return [d.name, d.grouping, d.label]
+              });
+            let df = new dfd.DataFrame(data, { columns: ["name","grouping","label"] })
+            importTable(df)
         }
 
-        getAllChildren(d).forEach(addGroupings)
+        // var f = event.target.files[0]; // FileList object
+        // var reader = new FileReader();
+
+        // reader.onload = function (event) {
+        //     loadTable(d3.csv.parse(event.target.result))
+        // };
+
+        // // Read in the file as a data URL.
+        // reader.readAsDataURL(f);
     }
 
-    function generateTable() {
+    function importTable(df) {
+        df.print()
+        let groupings = df['grouping'].unique().values
+        let others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
+        console.log("Groupings: " + groupings)
+        console.log("Others: " + others)
+        showStrains(groupings)
+        let visible = getVisibleNodes(root)
+                
+        others.forEach(function(name) {
+            node = findNode(name)
+            node.other = true
+            update(node)
+        })
+
+        ignored = visible.map(function(node){return node.compressed_name})
+        ignored = ignored.filter(x => !groupings.includes(x))
+        
+        ignored.forEach(function(name) {
+            node = findNode(name)
+            node.ignore = true
+            update(node)
+        })
+    }
+
+    function exportTable() {
 
         addGroupings(root)
         nodes = flatten(root)
         nodes.sort(function compareByName(a, b) {return a.name.localeCompare(b.name)})
 
+        data = []
+        nodes.forEach(function(node) { 
+            let strain = {"name": node.name, 
+                       "alias": node.compressed_name, 
+                       "clade": node.nextstrain, 
+                       "grouping": node.grouping, 
+                       "label": node.other, 
+                       "designationDate": node.designationDate}
+            data.push(strain)
+        });
+
         let csvContent = "data:text/csv;charset=utf-8,";
 
-        csvContent += ["name","alias","clade","grouping","designationDate"].join(",") + "\r\n";
+        csvContent += ["name","alias","clade","grouping","label","designationDate"].join(",") + "\r\n";
 
-        nodes.forEach(function(node) {
-            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.designationDate].join(",");
+        nodes.forEach(function(node) {            
+            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.label, node.designationDate].join(",");
             csvContent += row + "\r\n";
         });
 
@@ -436,19 +452,36 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         return nodes[strain]
     }
     
-    function getAllGroupings() {
+    function addGroupings(d) {
+
+        if (!d.parent) {
+            d.grouping = d.compressed_name
+        } else if (d.hidden || d.ignore) {
+            d.grouping = d.parent.grouping
+        // } else if (d.other) {
+        //     d.grouping = "Other"
+        } else {
+            d.grouping = d.compressed_name
+        }
+
+        d.label = flattenDict(root)[d.grouping].other ? "Other" : d.grouping
+
+        getAllChildren(d).forEach(addGroupings)
+    }
+
+    function getVisibleNodes(node) {
+
         var nodes = [], i = 0;
 
         function recurse(node) {
             getVisibleChildren(node).forEach(recurse);
             if (!node.id) node.id = ++i;
-            if (!node.ignore) nodes.push(node.compressed_name)
+            nodes.push(node);
         }
 
-        recurse(root);
-
-        return nodes;
-    }    
+        recurse(node);
+        return nodes;   
+    }
 
     function getVisibleChildren(d) {
         return (d.children) ? d.children : []
@@ -502,6 +535,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             d.hidden = false
             d.parent._children = spliceByName(d, d.parent._children)
             d.parent.children = spliceByName(d, d.parent.children).concat(d)
+           // if (d.parent.hidden = false) break
             d = d.parent;
         }
 
@@ -509,6 +543,27 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             updateLinks(d);
             update(d);
         }
+    }
+
+    function showStrains(strains) {
+
+        collapse(root)
+
+        nodes = flattenDict(root);
+
+        strains.forEach(function(strain) {
+            if (strain == "") return
+            let d = nodes[strain]
+            if (d) {
+                show(d, redraw = false)
+                console.log("Showing: " + strain)
+            } else {
+                console.log("Could not find strain: " + strain)
+            }
+        })
+
+        updateTree(root)
+        centerNode(root)
     }
 
     var overCircle = function (d) {
@@ -627,7 +682,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     function updateTree(node) {
         update(node)
         updateLinks(node)
-        if (node.children) node.children.forEach(updateTree)
+       // if (node.children) node.children.forEach(function(node) {updateTree(node, true)})
     }
 
     function update(source) {
@@ -683,7 +738,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                         '<br>Nextclade: ' + d.nextstrain +
                         '<br>Designation Date: ' + d.designationDate +
                         '<br>Hidden: ' + d.hidden + 
-                        '<br>Grouping: ' + d.grouping
+                        '<br>Grouping: ' + d.grouping + 
+                        '<br>Label: ' + d.label 
                     )
             })
             .on("mousemove", function () {
