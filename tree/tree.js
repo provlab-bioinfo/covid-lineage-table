@@ -101,7 +101,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             for (let i = 0; i < strains.length; i++) {
                 if (strains[i] == "") return
                 var [strain, value] = strains[i].split(';');
-                console.log("Searching for '" + strain)
 
                 var d = nodes[strain]
 
@@ -144,8 +143,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         .text("Export table")
         .attr("class","labelAsButton")
         .on("click", function () {
-            strains = getAllGroupings()//Object.keys(flattenDict(root, unaliased = false));
-            document.getElementById("subset").value = strains.join("\n");
+            generateTable()
+            // strains = getAllGroupings()//Object.keys(flattenDict(root, unaliased = false));
+            // document.getElementById("subset").value = strains.join("\n");
         });
 
     d3.select("#toolbar").append("text").text("   ")
@@ -255,10 +255,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     function addGroupings(d) {
 
-
-        console.log("checking")
-        console.log(d.name)
-
         if (!d.parent) {
             d.grouping = d.compressed_name
         } else if (d.hidden || d.ignore) {
@@ -270,7 +266,34 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         }
 
         getAllChildren(d).forEach(addGroupings)
+    }
 
+    function generateTable() {
+
+        addGroupings(root)
+        nodes = flatten(root)
+        nodes.sort(function compareByName(a, b) {return a.name.localeCompare(b.name)})
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+        csvContent += ["name","alias","clade","grouping","designationDate"].join(",") + "\r\n";
+
+        nodes.forEach(function(node) {
+            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.designationDate].join(",");
+            csvContent += row + "\r\n";
+        });
+
+        console.log(csvContent)
+        exportCSV(csvContent)
+    }
+
+    function exportCSV(data) {
+        var encodedUri = encodeURI(data);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "sars-cov2-reference-table.csv");
+        document.body.appendChild(link); // Required for FF
+        link.click();
     }
 
 
@@ -417,14 +440,13 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         var nodes = [], i = 0;
 
         function recurse(node) {
-            console.log(node.compressed_name)
             getVisibleChildren(node).forEach(recurse);
             if (!node.id) node.id = ++i;
             if (!node.ignore) nodes.push(node.compressed_name)
         }
 
         recurse(root);
-        console.log(nodes)
+
         return nodes;
     }    
 
@@ -575,7 +597,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     //#region Updates
 
     function updateLinks(d) {
-        console.log(additionalLinks)
         additionalLinks.forEach(function (link) {
             let sourceVisible = false;
             let targetVisible = false;
@@ -588,7 +609,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                 }
             });
             if (sourceVisible && targetVisible) {
-                console.log("")
                 link.source = link._source;
                 link.target = link._target;
             }
