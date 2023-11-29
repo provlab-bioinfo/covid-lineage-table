@@ -51,9 +51,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     var tree = d3.layout.tree()
         .size([viewerHeight, viewerWidth]);
 
-    var nodeList = tree.nodes(treeData);
+    var treeNodes = tree.nodes(treeData);
 
-    nodeList.forEach(add_fields)
+    treeNodes.forEach(add_fields)
 
     function add_fields(node) {
         node.ignore = false
@@ -64,11 +64,11 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     }
 
     let additionalLinks = []
-    for (let index = 0; index < nodeList.length; index++) {
-        let node = nodeList[index];
+    for (let index = 0; index < treeNodes.length; index++) {
+        let node = treeNodes[index];
         if (node.otherParents) {
             node.otherParents.forEach(parent => {
-                let parentNode = nodeList.filter(function (d) {
+                let parentNode = treeNodes.filter(function (d) {
                     return d['name'] === parent;
                 })[0];
                 let link = new Object();
@@ -153,12 +153,12 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         .attr("selected", "true")
         .text("Locate strain");
 
-    nodes = []
-    nodeList.forEach(function (d) {
-        if (d.compressed_name) nodes.push(d.compressed_name)
+    nodeSelect = []
+    treeNodes.forEach(function (d) {
+        if (d.compressed_name) nodeSelect.push(d.compressed_name)
     });
 
-    nodes.sort().forEach(function (node) {
+    nodeSelect.sort().forEach(function (node) {
         select.append("option")
             .attr("value", node)
             .text(node);
@@ -169,6 +169,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     d3.select("#toolbar").append("button")
         .text("Recenter").on("click", function () {
             centerNode(root)
+            console.log(additionalLinks)
+            console.log(getRecombinantStrains())
         });
 
     d3.select("#toolbar").append("button")
@@ -186,8 +188,14 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         });
 
     d3.select("#toolbar").append("button")
-        .text("Group").on("click", function () {
+        .text("Add Grouping").on("click", function () {
             addGroupings(root)
+        });
+
+    d3.select("#toolbar").append("button")
+        .text("Show Recombinants").on("click", function () {
+            nodes = getRecombinantStrains()
+            nodes.forEach(show)
         });
 
     d3.select("#helpbox").append("foreignObject")
@@ -276,7 +284,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     function exportTable() {
 
         addGroupings(root)
-        nodes = flatten(root)
+        nodes = nodeList(root)
         nodes.sort(function compareByName(a, b) {return a.name.localeCompare(b.name)})
 
         data = []
@@ -409,9 +417,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     //#endregion D3.js setup
 
     //#region Node search
-    function flatten(node) {
+    function nodeList(node) {
 
-        if (node == root && this.flattenCache) return this.flattenCache
+        if (node == root && this.nodeListCache) return this.nodeListCache
 
         var nodes = [],
             i = 0;
@@ -423,14 +431,14 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         }
 
         recurse(node);
-        if (node == root) flattenCache = nodes
+        if (node == root) nodeListCache = nodes
         return nodes;
     }
 
-    function flattenDict(node, unaliased = true, aliased = true) {        
+    function nodeDict(node, unaliased = true, aliased = true) {        
         
-        if (node == root && unaliased && aliased && this.flattenDictCache) {
-            return this.flattenDictCache
+        if (node == root && unaliased && aliased && this.nodeDictCache) {
+            return this.nodeDictCache
         } else {        
             var nodes = {}, i = 0;
 
@@ -442,16 +450,19 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             }
 
             recurse(node);
-            if (node == root && unaliased && aliased) flattenDictCache = nodes
+            if (node == root && unaliased && aliased) nodeDictCache = nodes
             return nodes;
         }
     }
     
     function findNode(strain) {
-        nodes = flattenDict(root);
-        return nodes[strain]
+        return nodeDict(root)[strain];
     }
     
+    //#endregion Node search
+
+    //#region Node metadata
+
     function addGroupings(d) {
 
         if (!d.parent) {
@@ -464,10 +475,24 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             d.grouping = d.compressed_name
         }
 
-        d.label = flattenDict(root)[d.grouping].other ? "Other" : d.grouping
+        d.label = nodeDict(root)[d.grouping].other ? "Other" : d.grouping
 
         getAllChildren(d).forEach(addGroupings)
     }
+
+    function toggleIgnore(d) {
+        d.ignore = !d.ignore
+        if (d.other) d.other = false
+    }
+
+    function toggleOther(d) {
+        d.other = !d.other
+        if (d.ignore) d.ignore = false
+    }
+
+    //#endregion Node metadata
+
+    //#region Node subset
 
     function getVisibleNodes(node) {
 
@@ -495,6 +520,17 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         return getVisibleChildren(d).concat(getHiddenChildren(d))
     }
 
+    function getRecombinantStrains() {
+        recomb = []
+        additionalLinks.forEach(function (link) {
+            strain = link._target.name
+            recomb.push(findNode(strain))
+        })
+        return recomb
+    }
+
+    //#endregion Node subset
+
     //#region Node actions
     function collapse(d) {
         if (d.children) {
@@ -521,10 +557,42 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         d._children = null;
     }
 
+    function toggleNode(d, collapseSelf = false) {
+        if (d.children) {
+            collapse(d);
+        } else if (d._children) {
+            expand(d)
+        }
+
+        if ((!d.children && !d._children) || collapseSelf) {
+            d.parent.children = spliceByName(d, d.parent.children)
+            d.parent._children = (d.parent._children) ? d.parent._children.concat([d]) : [d]
+            d.hidden = true
+        }
+
+        return d;
+    }
+
+    function spliceByName(d, array) {
+        if (array) {
+            array = array.filter(function (array) {
+                return array.name !== d.name;
+            })
+        } else {
+            array = []
+        }
+        return array
+    }
+
+    //#endregion Node actions
+
+    //#endregion Node visualization
+
     const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
+
     const removePaths = async () => {
         await wait(2000);
-        flatten(root).forEach(function (d) {
+        nodeList(root).forEach(function (d) {
             d.color = undefined;
         })
         update(root);
@@ -549,7 +617,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
         collapse(root)
 
-        nodes = flattenDict(root);
+        nodes = nodeDict(root);
 
         strains.forEach(function(strain) {
             if (strain == "") return
@@ -587,43 +655,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
         zoomListener.scale(scale);
         zoomListener.translate([x, y]);
-    }
-
-    function toggleNode(d, collapseSelf = false) {
-        if (d.children) {
-            collapse(d);
-        } else if (d._children) {
-            expand(d)
-        }
-
-        if ((!d.children && !d._children) || collapseSelf) {
-            d.parent.children = spliceByName(d, d.parent.children)
-            d.parent._children = (d.parent._children) ? d.parent._children.concat([d]) : [d]
-            d.hidden = true
-        }
-
-        return d;
-    }
-
-    function toggleIgnore(d) {
-        d.ignore = !d.ignore
-        if (d.other) d.other = false
-    }
-
-    function toggleOther(d) {
-        d.other = !d.other
-        if (d.ignore) d.ignore = false
-    }
-
-    function spliceByName(d, array) {
-        if (array) {
-            array = array.filter(function (array) {
-                return array.name !== d.name;
-            })
-        } else {
-            array = []
-        }
-        return array
     }
 
     // Clicking on nodes
@@ -737,9 +768,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                         '<br>Alias: ' + d.compressed_name +
                         '<br>Nextclade: ' + d.nextstrain +
                         '<br>Designation Date: ' + d.designationDate +
-                        '<br>Hidden: ' + d.hidden + 
-                        '<br>Grouping: ' + d.grouping + 
-                        '<br>Label: ' + d.label 
+                        //'<br>Hidden: ' + d.hidden + 
+                        '<br>Grouping: ' + (d.grouping ? d.grouping : "NA") + 
+                        '<br>Label: ' + (d.label ? d.label : "NA")
                     )
             })
             .on("mousemove", function () {
