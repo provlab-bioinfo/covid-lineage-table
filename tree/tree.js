@@ -222,6 +222,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     //#endregion UI
 
     //#region File input
+
     function handleFileSelect() {
         // Check for the various File API support.
         if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -239,9 +240,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
         function parseFile() {
             var data = d3.csv.parse(reader.result, function(d){
-                return [d.name, d.grouping, d.label]
+                return [d.name, d.alias, d.grouping, d.label]
               });
-            let df = new dfd.DataFrame(data, { columns: ["name","grouping","label"] })
+            let df = new dfd.DataFrame(data, { columns: ["name","alias","grouping","label"] })
             importTable(df)
         }
 
@@ -258,27 +259,43 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
     function importTable(df) {
         df.print()
-        let groupings = df['grouping'].unique().values
-        let others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
-        console.log("Groupings: " + groupings)
-        console.log("Others: " + others)
+
+        let groupings = df['grouping'].unique().values        
+        console.log("Groupings: " + groupings)        
         showStrains(groupings)
-        let visible = getVisibleNodes(root)
-                
+
+        // Process ignored nodes
+        let visible = getVisibleNodes(root).map(function(node){return node.compressed_name})
+        let ignored = visible.filter(x => !groupings.includes(x))
+        console.log("Ignored: " + ignored)
+        ignored.forEach(function(name) {
+            node = findNode(name)
+            node.ignore = true
+            update(node)
+        })
+
+        // Process other nodes
+        let others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
+        console.log("Others: " + others)
         others.forEach(function(name) {
             node = findNode(name)
             node.other = true
             update(node)
         })
 
-        ignored = visible.map(function(node){return node.compressed_name})
-        ignored = ignored.filter(x => !groupings.includes(x))
-        
-        ignored.forEach(function(name) {
-            node = findNode(name)
-            node.ignore = true
+        // Process new nodes
+        let refStrains = nodeList(root).map(function(node){return node.compressed_name})
+        let oldStrains = df['alias'].values
+        let newStrains = refStrains.filter(x => !oldStrains.includes(x))
+        showStrains(groupings.concat(newStrains))
+        let newVisible = getVisibleNodes(root).map(function(node){return node.compressed_name})
+        newVisible = newVisible.filter(x => !visible.includes(x))
+        newVisible.forEach(function (strain) {
+            node = findNode(strain)
+            node.new = true
             update(node)
         })
+        showStrains(newVisible.concat(groupings))
     }
 
     function exportTable() {
@@ -319,7 +336,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         document.body.appendChild(link); // Required for FF
         link.click();
     }
-
 
     //#endregion File input
 
@@ -584,9 +600,28 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         return array
     }
 
+    function click(d) {
+        if (d3.event.defaultPrevented) return; // click suppressed
+
+        center = false
+
+        if (d3.event.shiftKey) {
+            toggleIgnore(d)
+        } else if (d3.event.altKey) {
+            toggleOther(d)
+        } else {
+            d = toggleNode(d, d3.event.ctrlKey);
+            center = true
+        }
+
+        updateLinks(d)
+        update(d);
+        if (center) centerNode(d)
+    }
+
     //#endregion Node actions
 
-    //#endregion Node visualization
+    //#region Node visualization
 
     const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
@@ -594,6 +629,14 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         await wait(2000);
         nodeList(root).forEach(function (d) {
             d.color = undefined;
+        })
+        update(root);
+    }
+
+    const removeNewColor = async () => {
+        await wait(2000);
+        nodeList(root).forEach(function (d) {
+            d.new = false;
         })
         update(root);
     }
@@ -619,9 +662,9 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         }
     }
 
-    function showStrains(strains) {
+    function showStrains(strains, reset = true) {
 
-        collapse(root)
+        if (reset) collapse(root)
         strains.forEach(function(strain) {
             if (strain == "") return
             let d = nodeDict(root)[strain]
@@ -659,29 +702,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         zoomListener.scale(scale);
         zoomListener.translate([x, y]);
     }
-
-    // Clicking on nodes
-    function click(d) {
-        if (d3.event.defaultPrevented) return; // click suppressed
-
-        center = false
-
-        if (d3.event.shiftKey) {
-            toggleIgnore(d)
-        } else if (d3.event.altKey) {
-            toggleOther(d)
-        } else {
-            d = toggleNode(d, d3.event.ctrlKey);
-            center = true
-        }
-
-        updateLinks(d)
-        update(d);
-        if (center) centerNode(d)
-        
-    }
     
-    //#endregion Node actions
+    //#endregion Node visualizations
 
     //#region Updates
 
@@ -839,6 +861,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
                     return "firebrick"
                 } else if (d.other) {
                     return "goldenrod"
+                } else if (d.new) {
+                    return "blue"
                 }
                 return "forestgreen"
             });
@@ -863,7 +887,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             .remove();
 
         nodeExit.select("circle")
-            .attr("r", 0);
+            //.attr("r", 0); //TODO: Not sure why 0 makes some nodes disappear. Can see nodes fly from the root node sometimes
+            .attr("r", 6); 
 
         nodeExit.select("text")
             .style("fill-opacity", 0);
