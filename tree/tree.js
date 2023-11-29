@@ -95,6 +95,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         .text("Subset").on("click", function () {
             strains = document.getElementById("subset").value.split("\n");
             showStrains(strains)
+            showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
         });
 
         d3.select("#toolbar").append("text").text("   ")
@@ -136,7 +137,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             if (select == "Locate strain") return
 
             var node = findNode(select)
-            show(node)
+            showNodes(node)
             centerNode(node)
 
             while (node.parent) {
@@ -169,8 +170,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     d3.select("#toolbar").append("button")
         .text("Recenter").on("click", function () {
             centerNode(root)
-            console.log(additionalLinks)
-            console.log(getRecombinantStrains())
         });
 
     d3.select("#toolbar").append("button")
@@ -195,7 +194,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     d3.select("#toolbar").append("button")
         .text("Show Recombinants").on("click", function () {
             nodes = getRecombinantStrains()
-            nodes.forEach(show)
+            console.log(nodes)
+            showNodes(nodes)
         });
 
     d3.select("#helpbox").append("foreignObject")
@@ -598,32 +598,35 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         update(root);
     }
 
-    function show(d, redraw = true) {
-        while (d.parent) {
-            d.hidden = false
-            d.parent._children = spliceByName(d, d.parent._children)
-            d.parent.children = spliceByName(d, d.parent.children).concat(d)
-           // if (d.parent.hidden = false) break
-            d = d.parent;
-        }
+    function showNodes(node, redraw = true) {
 
-        if (redraw) {
-            updateLinks(d);
-            update(d);
+        if (Array.isArray(node)) {
+            node.forEach(function(n) {showNodes(n, redraw = false)})
+            updateTree(root)
+        } else {
+            console.log(node)
+            while (node.parent) {
+                node.hidden = false
+                node.parent._children = spliceByName(node, node.parent._children)
+                node.parent.children = spliceByName(node, node.parent.children).concat(node)
+                node = node.parent;
+            }
+
+            if (redraw) {
+                updateLinks(node);
+                update(node);
+            }
         }
     }
 
     function showStrains(strains) {
 
         collapse(root)
-
-        nodes = nodeDict(root);
-
         strains.forEach(function(strain) {
             if (strain == "") return
-            let d = nodes[strain]
+            let d = nodeDict(root)[strain]
             if (d) {
-                show(d, redraw = false)
+                showNodes(d, redraw = false)
                 console.log("Showing: " + strain)
             } else {
                 console.log("Could not find strain: " + strain)
