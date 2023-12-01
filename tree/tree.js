@@ -210,7 +210,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \
             <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr></table>"
         })
-
     
     var tooltip = d3.select("body")
         .append("tspan")
@@ -258,8 +257,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     }
 
     function importTable(df) {
-        df.print()
-
         let groupings = df['grouping'].unique().values        
         console.log("Groupings: " + groupings)        
         showStrains(groupings)
@@ -644,7 +641,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     function showNodes(node, redraw = true) {
 
         if (Array.isArray(node)) {
-            node.forEach(function(n) {showNodes(n, redraw = false)})
+            node.forEach(function(n) {showNodes(n, redraw = true)})
             updateTree(root)
         } else {
             console.log(node)
