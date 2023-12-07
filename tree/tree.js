@@ -208,7 +208,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             <tr><td style='text-align: right;'>Left Click:</td><td>Un/collapse children</td></tr> \
             <tr><td style='text-align: right;'>CTRL + Click:</td><td>Collapse Node</td></tr> \
             <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \
-            <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr></table>"
+            <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr> \
+            </table>"
         })
     
     var tooltip = d3.select("body")
@@ -273,6 +274,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
         // Process other nodes
         let others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
+        others = others.concat(df.groupby(["label"]).getGroup(["Recombinant other"])["grouping"].unique().values)
         console.log("Others: " + others)
         others.forEach(function(name) {
             node = findNode(name)
@@ -287,6 +289,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         showStrains(groupings.concat(newStrains))
         let newVisible = getVisibleNodes(root).map(function(node){return node.compressed_name})
         newVisible = newVisible.filter(x => !visible.includes(x))
+        newVisible = newVisible.filter(x => !oldStrains.includes(x))
         newVisible.forEach(function (strain) {
             node = findNode(strain)
             node.new = true
@@ -317,6 +320,10 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         csvContent += ["name","alias","clade","grouping","label","designationDate"].join(",") + "\r\n";
 
         nodes.forEach(function(node) {            
+            if (node.label == "Other" && node.name.startsWith("X")) {
+                node.label = "Recombinant other"
+            }
+
             let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.label, node.designationDate].join(",");
             csvContent += row + "\r\n";
         });
@@ -482,8 +489,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
             d.grouping = d.compressed_name
         } else if (d.hidden || d.ignore) {
             d.grouping = d.parent.grouping
-        // } else if (d.other) {
-        //     d.grouping = "Other"
         } else {
             d.grouping = d.compressed_name
         }
@@ -508,7 +513,6 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     //#region Node subset
 
     function getVisibleNodes(node) {
-
         var nodes = [], i = 0;
 
         function recurse(node) {
