@@ -27,7 +27,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 
 // Get JSON data
 //treeJSON = d3.json("https://raw.githubusercontent.com/MDU-PHL/pango-watch/main/tree/data.json", function(error, treeData) {
-treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
+treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     //#region Initial setup
 
@@ -258,18 +258,22 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
     }
 
     function importTable(df) {
+
+        // Ignore everything
+        nodeList(root).forEach(function(node) {
+            node.ignore = true
+        })
+
+        // Deignore grouping nodes
         let groupings = df['grouping'].unique().values        
         console.log("Groupings: " + groupings)        
         showStrains(groupings)
-
-        // Process ignored nodes
         let visible = getVisibleNodes(root).map(function(node){return node.compressed_name})
-        let ignored = visible.filter(x => !groupings.includes(x))
-        console.log("Ignored: " + ignored)
-        ignored.forEach(function(name) {
+        let groups = visible.filter(x => groupings.includes(x))
+        console.log("Groups: " + groups)
+        groups.forEach(function(name) {
             node = findNode(name)
-            node.ignore = true
-            update(node)
+            node.ignore = false
         })
 
         // Process other nodes
@@ -279,7 +283,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         others.forEach(function(name) {
             node = findNode(name)
             node.other = true
-            update(node)
+            node.ignore = false
+            //update(node)
         })
 
         // Process new nodes
@@ -293,7 +298,8 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
         newVisible.forEach(function (strain) {
             node = findNode(strain)
             node.new = true
-            update(node)
+            node.ignore = false
+            //update(node)
         })
         showStrains(newVisible.concat(groupings))
     }
@@ -487,7 +493,7 @@ treeJSON = d3.json("data_nextstrain.json", function (error, treeData) {
 
         if (!d.parent) {
             d.grouping = d.compressed_name
-        } else if (d.hidden || d.ignore) {
+        } else if (d.hidden || d.ignore || d.new) {
             d.grouping = d.parent.grouping
         } else {
             d.grouping = d.compressed_name
