@@ -338,11 +338,19 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         exportCSV(csvContent)
     }
 
+    function yymmdd() {
+        var now = new Date();
+        return now.getFullYear().toString().slice(-2) + 
+               ('0' + (now.getMonth() + 1).toString()).slice(-2) +
+               ('0' + now.getDate().toString()).slice(-2);
+    }
+
     function exportCSV(data) {
+        const currentDate = new Date().toDateString();
         var encodedUri = encodeURI(data);
         var link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "sars-cov2-reference-table.csv");
+        link.setAttribute("download", yymmdd() +"_variant_groupings.csv");
         document.body.appendChild(link); // Required for FF
         link.click();
     }
