@@ -27,9 +27,11 @@ In your browser:
 http://localhost:8000/
 ```
 
+![covid-lineage-table in browser](./lineage-tree.jpg)
+
 ## Usage
 
-Each SARS-CoV-2 is represented as a node, with branches leading to its parent and child strains. The color of the node determines how it is going to be grouping in the reference table:
+Each SARS-CoV-2 strain is represented as a node, with branches leading to its parent and child strains. The color of the node determines how it is going to be grouping in the reference table:
 
     - Green: A grouping strain    
     - Yellow: A strain to be grouped as 'Other' or 'Recombinant Other' (if derived from an X** variant)
