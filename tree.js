@@ -198,6 +198,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             showNodes(nodes)
         });
 
+    d3.select("#toolbar").append("button")
+        .text("Subset Mermaid").on("click", function () {
+            subsetMermaid()
+        });
+        
+
+    d3.select("#toolbar").append("button")
+        .text("Export Mermaid").on("click", function () {
+            exportMermaid()
+        });
+
     d3.select("#helpbox").append("foreignObject")
         .html(function (d) {
             return "<table><tr><td style='text-align: center; background-color:forestgreen;'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
@@ -305,7 +316,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     }
 
     function exportTable() {
-
         addGroupings(root)
         nodes = nodeList(root)
         nodes.sort(function compareByName(a, b) {return a.name.localeCompare(b.name)})
@@ -337,6 +347,52 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         console.log(csvContent)
         exportCSV(csvContent)
     }
+
+    function subsetMermaid() {
+
+        groupingNodes = getGroupingStrains(root)
+        recombParents = []
+
+        console.log("1")
+        console.log(groupingNodes)
+
+        groupingNodes.forEach(function (node) {
+            if (node.otherParents) {
+                recombParents.push.apply(recombParents,node.otherParents)
+                recombParents.push(node.parent.name)
+            }
+        })
+
+        recombParents = recombParents.map(findNode)
+
+        console.log("2")
+        console.log(recombParents)
+ 
+        nodes = [...new Set(groupingNodes.concat(recombParents))].concat(root)
+        nodes = nodes.map((x) => x.name)
+        console.log(nodes)
+
+        showStrains(nodes)
+        removeHidden(root)
+
+        allNodes = getVisibleNodes(root)
+        console.log(allNodes)
+
+        allNodes = getVisibleNodes(root).map((x) => x.name)
+        console.log(allNodes)
+
+        allNodes.forEach(function (d) {
+            if (!nodes.includes(d)) {
+                console.log("Remove:")
+                console.log(d)
+                removeNode(findNode(d))
+            }    
+        })
+
+        update(root);
+    }
+
+    function exportMermaid() {}
 
     function yymmdd() {
         var now = new Date();
@@ -560,6 +616,15 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         return recomb
     }
 
+    function getGroupingStrains(d) {       
+        nodes = new Set();
+        addGroupings(d)
+        getVisibleNodes(d).forEach(function (n) {
+            if (n.label == n.compressed_name) nodes.add(n);
+        })    
+        return Array.from(nodes); 
+    }
+
     //#endregion Node subset
 
     //#region Node actions
@@ -586,6 +651,26 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             d.children.forEach(removeHidden);
         }
         d._children = null;
+    }
+
+    function removeNode(d) {        
+        if (d.parent) {
+            if (d.children) {
+                d.parent.children.push(...d.children)
+                d.children.forEach(function (c) {c.parent = d.parent})
+                d.children = null
+                d.parent.children = d.parent.children.filter((n) => n.name !== d.name);
+            }
+
+            if (d._children) {
+                d.parent._children.push(d._children)            
+                d._children.forEach(function (c) {c.parent = d.parent})
+                d._children = null
+                d.parent._children = d.parent._children.filter((n) => n.name !== d.name);
+            }
+
+            d = null  
+        }
     }
 
     function toggleNode(d, collapseSelf = false) {
@@ -662,7 +747,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.forEach(function(n) {showNodes(n, redraw = true)})
             updateTree(root)
         } else {
-            console.log(node)
+            // console.log(node)
             while (node.parent) {
                 node.hidden = false
                 node.parent._children = spliceByName(node, node.parent._children)
