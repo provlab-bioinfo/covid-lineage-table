@@ -204,7 +204,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             subsetMermaid()
         });
         
-
     d3.select("#toolbar").append("button")
         .text("Export Mermaid").on("click", function () {
             exportMermaid()
@@ -346,7 +345,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         });
 
         console.log(csvContent)
-        exportCSV(csvContent)
+        exportFile(csvContent, yymmdd() +"_variant_groupings.csv")
     }
 
     function subsetMermaid() {
@@ -390,10 +389,41 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             }    
         })
 
-        update(root);
+        updateTree(root);
     }
 
-    function exportMermaid() {}
+    function exportMermaid() {
+
+        mermaid = []
+        
+        getVisibleNodes(root).forEach(function(node) {
+            if (!node.ignore) {
+                mermaid.push("style " + node.compressed_name + " stroke:DarkBlue, stroke-width:4px") // Can't use RGB values starting with #. Output file will not show anything past a #.
+            }
+
+            if (getAllChildren(node).length) {
+                links = getAllChildren(node).map((x) => node.compressed_name + (node.ignore ? " -.-> " : " --> ") + x.compressed_name)
+                mermaid.push(...links)
+            }
+
+            if (node.otherParents) {
+                parents = node.otherParents.map((x) => findNode(x))
+                links = parents.map((x) => x.compressed_name + (x.ignore ? " -.-> " : " --> ") + node.compressed_name)
+                mermaid.push(...links)
+            }
+
+            mermaid.push("")
+        })
+
+        mermaid.reverse()
+
+        let fileContent = "data:text/plain;charset=utf-8,";
+        fileContent += "graph LR\r\n"
+        fileContent += mermaid.join("\r\n") //+ "\r\n"
+        // fileContent += styles.join("\r\n")
+
+        exportFile(fileContent, yymmdd() +"_mermaid.txt")
+    }
 
     function yymmdd() {
         var now = new Date();
@@ -402,12 +432,11 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                ('0' + now.getDate().toString()).slice(-2);
     }
 
-    function exportCSV(data) {
-        const currentDate = new Date().toDateString();
+    function exportFile(data, name) {
         var encodedUri = encodeURI(data);
         var link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", yymmdd() +"_variant_groupings.csv");
+        link.setAttribute("download", name);
         document.body.appendChild(link); // Required for FF
         link.click();
     }
