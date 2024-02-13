@@ -16,7 +16,7 @@ Based on [pango-watch](https://github.com/MDU-PHL/pango-watch), this tool visual
 ## Quick-Start Guide
 
 Generate the up-to-date tree and host the webpage:
-```bash
+```powershell
 cd <path/to/covid-lineage-table/>
 python generateTree.py
 python -m http.server

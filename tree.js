@@ -189,14 +189,15 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     d3.select("#toolbar").append("button")
         .text("Add Grouping").on("click", function () {
             addGroupings(root)
+            update(root)
         });
 
-    d3.select("#toolbar").append("button")
-        .text("Show Recombinants").on("click", function () {
-            nodes = getRecombinantStrains()
-            console.log(nodes)
-            showNodes(nodes)
-        });
+    // d3.select("#toolbar").append("button")
+    //     .text("Show Recombinants").on("click", function () {
+    //         nodes = getRecombinantStrains()
+    //         console.log(nodes)
+    //         showNodes(nodes)
+    //     });
 
     d3.select("#toolbar").append("button")
         .text("Subset Mermaid").on("click", function () {
@@ -555,10 +556,20 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     function addGroupings(d) {
 
+        if (d.new) {
+            if (d.name.startsWith("X") && d.name.length == 3) {
+                d.other = true
+            } else {
+                d.ignore = true
+            }
+
+            d.new = false
+        }
+
         if (!d.parent) {
             d.grouping = d.compressed_name
-        } else if (d.hidden || d.ignore || d.new) {
-            d.grouping = d.parent.grouping
+        } else if (d.hidden || d.ignore) {
+            d.grouping = d.parent.grouping 
         } else {
             d.grouping = d.compressed_name
         }
