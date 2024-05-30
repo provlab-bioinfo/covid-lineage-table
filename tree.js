@@ -309,6 +309,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         others = others.concat(df.groupby(["label"]).getGroup(["Recombinant other"])["grouping"].unique().values)
         console.log("Others: " + others)
         others.forEach(function(name) {
+            console.log("Finding " + name)
             node = findNode(name)
             node.other = true
             node.ignore = false
