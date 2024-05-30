@@ -159,7 +159,24 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         if (d.compressed_name) nodeSelect.push(d.compressed_name)
     });
 
-    nodeSelect.sort().forEach(function (node) {
+    castIntOrStr = function(t) {return(isNaN(Number(t)) ? t.toLowerCase() : Number(t))}
+    triCompare = function (value1, value2) {
+        value1 = castIntOrStr(value1); value2 = castIntOrStr(value2);
+        return((value1 === value2) ? 0 : (value1 < value2) ? -1 : 1)
+    }
+
+    sortLexicographic = function (a, b) {
+        var result;
+        a = a.split('.');
+        b = b.split('.');
+        while (a.length) {
+          result = triCompare(a.shift(), (b.shift() || 0))
+          if (result !== 0) return result;
+        }
+        return -1;
+    }
+
+    nodeSelect.toSorted(sortLexicographic).forEach(function (node) {
         select.append("option")
             .attr("value", node)
             .text(node);
