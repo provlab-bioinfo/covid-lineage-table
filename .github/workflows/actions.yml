@@ -1,9 +1,11 @@
 # Modified from https://www.python-engineer.com/posts/run-python-github-actions/
-name: run generateTree.py
+name: Daily update lineage tree
 
 on:
+  workflow_dispatch:
   schedule:
     - cron:  '0 0 * * *'
+    
 
 jobs:
   build:
