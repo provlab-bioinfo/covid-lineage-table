@@ -315,7 +315,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.ignore = false
             //update(node)
         })
-
+        
         // Process new nodes
         let refStrains = nodeList(root).map(function(node){return node.compressed_name})
         let oldStrains = df['alias'].values
