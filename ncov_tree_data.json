@@ -17882,8 +17882,8 @@
                                                       "children": [],
                                                       "compressed_name": "KP.2.3.3",
                                                       "num_children": 0,
-                                                      "nextstrain": "None",
-                                                      "designationDate": "Unknown"
+                                                      "nextstrain": "23I",
+                                                      "designationDate": "2024-06-07"
                                                     }
                                                   ],
                                                   "compressed_name": "KP.2.3",
@@ -19169,10 +19169,18 @@
                                       "num_children": 0,
                                       "nextstrain": "23I",
                                       "designationDate": "2024-06-05"
+                                    },
+                                    {
+                                      "name": "B.1.1.529.2.86.1.1.62",
+                                      "children": [],
+                                      "compressed_name": "JN.1.62",
+                                      "num_children": 0,
+                                      "nextstrain": "23I",
+                                      "designationDate": "2024-06-08"
                                     }
                                   ],
                                   "compressed_name": "JN.1",
-                                  "num_children": 241,
+                                  "num_children": 242,
                                   "nextstrain": "23I",
                                   "designationDate": "2023-09-29"
                                 },
@@ -19433,7 +19441,7 @@
                                 }
                               ],
                               "compressed_name": "BA.2.86.1",
-                              "num_children": 273,
+                              "num_children": 274,
                               "nextstrain": "23I",
                               "designationDate": "2023-09-05"
                             },
@@ -19514,7 +19522,7 @@
                             }
                           ],
                           "compressed_name": "BA.2.86",
-                          "num_children": 283,
+                          "num_children": 284,
                           "nextstrain": "23I",
                           "designationDate": "2023-08-17"
                         },
@@ -19867,7 +19875,7 @@
                         }
                       ],
                       "compressed_name": "BA.2",
-                      "num_children": 1730,
+                      "num_children": 1731,
                       "nextstrain": "21L",
                       "designationDate": "2021-12-07"
                     },
@@ -24941,13 +24949,13 @@
                     }
                   ],
                   "compressed_name": "B.1.1.529",
-                  "num_children": 2394,
+                  "num_children": 2395,
                   "nextstrain": "None",
                   "designationDate": "Unknown"
                 }
               ],
               "compressed_name": "B.1.1",
-              "num_children": 2954,
+              "num_children": 2955,
               "nextstrain": "20B",
               "designationDate": "Unknown"
             },
@@ -33145,7 +33153,7 @@
             }
           ],
           "compressed_name": "B.1",
-          "num_children": 3961,
+          "num_children": 3962,
           "nextstrain": "20A",
           "designationDate": "Unknown"
         },
@@ -33642,13 +33650,13 @@
         }
       ],
       "compressed_name": "B",
-      "num_children": 4023,
+      "num_children": 4024,
       "nextstrain": "19A",
       "designationDate": "Unknown"
     }
   ],
   "compressed_name": "SARS-CoV-2",
-  "num_children": 4058,
+  "num_children": 4059,
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
