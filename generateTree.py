@@ -1,4 +1,5 @@
 import json, urllib.request, os
+from datetime import datetime
 
 os.chdir(os.path.dirname(__file__))
 
@@ -7,6 +8,9 @@ def generateTree(node, summary):
     :param node: The 'node'; a dictionary derived from the JSON.
     :return: The node with updated data.
     """    
+    if (node.get("name", None) == "root"):
+        node["lastChanged"] = datetime.today().strftime('%Y-%m-%d')
+
     strain = node.get("compressed_name", None)
     node["nextstrain"] = summary.get(strain,{}).get("nextstrainClade","None")
     node["designationDate"] = summary.get(strain,{}).get("designationDate","")
