@@ -237,7 +237,8 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             <tr><td style='text-align: right;'>CTRL + Click:</td><td>Collapse Node</td></tr> \
             <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \
             <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr> \
-            </table>"
+            </table><br> \
+            Database last updated: <a href='https://mdu-phl.github.io/pango-watch/'>" + treeData.lastChanged + "</a>"      
         })
     
     var tooltip = d3.select("body")
