@@ -58,7 +58,9 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     function add_fields(node) {
         node.ignore = false
         node.other = false
+        node.subgroup = false
         node.grouping = null
+        node.subgrouping = null
         node.hidden = false
         if (!node.children) node.children = []
     }
@@ -229,6 +231,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     d3.select("#helpbox").append("foreignObject")
         .html(function (d) {
             return "<table><tr><td style='text-align: center; background-color:forestgreen;'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
+            <tr><td style='text-align: center; background-color:MediumPurple;'><font color='white'>Purple</font></td><td>&nbsp&nbsp&nbspSub-grouping strains</td></tr> \
             <tr><td style='text-align: center; background-color:goldenrod;'><font color='white'>Yellow</font></td><td>&nbsp&nbsp&nbsp'Other' strains</td></tr> \
             <tr><td style='text-align: center; background-color:firebrick;'><font color='white'>Red</font></td><td>&nbsp&nbsp&nbspIgnored strains</td></tr> \
             <tr><td style='text-align: center; background-color:DodgerBlue;'><font color='white'>Blue</font></td><td>&nbsp&nbsp&nbspNew strains</td></tr> \
@@ -237,6 +240,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             <tr><td style='text-align: right;'>CTRL + Click:</td><td>Collapse Node</td></tr> \
             <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \
             <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr> \
+            <tr><td style='text-align: right;'>CTRL + ALT + <br>&nbsp&nbspLeft Click:&nbsp&nbsp</td><td>Assign as sub-group</td></tr> \
             </table><br> \
             Database last updated: <a href='https://mdu-phl.github.io/pango-watch/'>" + treeData.lastChanged + "</a>"      
         })
@@ -269,9 +273,9 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         function parseFile() {
             var data = d3.csv.parse(reader.result, function(d){
-                return [d.name, d.alias, d.grouping, d.label]
+                return [d.name, d.alias, d.grouping, d.subgrouping, d.label]
               });
-            let df = new dfd.DataFrame(data, { columns: ["name","alias","grouping","label"] })
+            let df = new dfd.DataFrame(data, { columns: ["name","alias","grouping","subgrouping","label"] })
             importTable(df)
         }
 
@@ -294,23 +298,33 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         })
 
         // Deignore grouping nodes
-        let groupings = df['grouping'].unique().values        
-        console.log("Groupings: " + groupings)        
-        showStrains(groupings)
+        let groupings = new Set(df['grouping'].unique().values)
+        let subgroupings = new Set(df.query(df["subgrouping"].ne("Other"))['alias'].unique().values).difference(groupings)
+        groupings = Array.from(groupings);
+        subgroupings = Array.from(subgroupings);
+        console.log(subgroupings)
+        console.log(groupings.concat(subgroupings))
+        showStrains(groupings.concat(subgroupings))
         let visible = getVisibleNodes(root).map(function(node){return node.compressed_name})
+
         let groups = visible.filter(x => groupings.includes(x))
-        console.log("Groups: " + groups)
         groups.forEach(function(name) {
             node = findNode(name)
             node.ignore = false
+            node.subgroup = false
+        })
+
+        let subgroups = visible.filter(x => subgroupings.includes(x))
+        subgroups.forEach(function(name) {
+            node = findNode(name)
+            node.ignore = false
+            node.subgroup = true
         })
 
         // Process other nodes
         let others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
         others = others.concat(df.groupby(["label"]).getGroup(["Recombinant other"])["grouping"].unique().values)
-        console.log("Others: " + others)
         others.forEach(function(name) {
-            console.log("Finding " + name)
             node = findNode(name)
             node.other = true
             node.ignore = false
@@ -345,6 +359,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                        "alias": node.compressed_name, 
                        "clade": node.nextstrain, 
                        "grouping": node.grouping, 
+                       "subgrouping": node.subgrouping, 
                        "label": node.other, 
                        "designationDate": node.designationDate}
             data.push(strain)
@@ -352,18 +367,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         let csvContent = "data:text/csv;charset=utf-8,";
 
-        csvContent += ["name","alias","clade","grouping","label","designationDate"].join(",") + "\r\n";
+        csvContent += ["name","alias","clade","grouping","subgrouping","label","designationDate"].join(",") + "\r\n";
 
         nodes.forEach(function(node) {            
             if (node.label == "Other" && node.name.startsWith("X")) {
                 node.label = "Recombinant other"
             }
 
-            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.label, node.designationDate].join(",");
+            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.subgrouping, node.label, node.designationDate].join(",");
             csvContent += row + "\r\n";
         });
 
-        console.log(csvContent)
         exportFile(csvContent, yymmdd() +"_variant_groupings.csv")
     }
 
@@ -371,9 +385,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         groupingNodes = getGroupingStrains(root)
         recombParents = []
-
-        console.log("1")
-        console.log(groupingNodes)
 
         groupingNodes.forEach(function (node) {
             if (node.otherParents) {
@@ -383,27 +394,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         })
 
         recombParents = recombParents.map(findNode)
-
-        console.log("2")
-        console.log(recombParents)
  
         nodes = [...new Set(groupingNodes.concat(recombParents))].concat(root)
         nodes = nodes.map((x) => x.name)
-        console.log(nodes)
 
         showStrains(nodes)
         removeHidden(root)
 
-        allNodes = getVisibleNodes(root)
-        console.log(allNodes)
-
         allNodes = getVisibleNodes(root).map((x) => x.name)
-        console.log(allNodes)
 
         allNodes.forEach(function (d) {
             if (!nodes.includes(d)) {
-                console.log("Remove:")
-                console.log(d)
                 removeNode(findNode(d))
             }    
         })
@@ -603,14 +604,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     //#region Node metadata
 
     function addGroupings(d) {
+        addMaingroupings(d)
+        addSubgroupings(d)
+    }
 
+    function addMaingroupings(d) {
         if (d.new) {
             if (d.name.startsWith("X") && d.name.length == 3) {
                 d.other = true
             } else {
                 d.ignore = true
             }
-
             d.new = false
         }
 
@@ -627,13 +631,32 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         getAllChildren(d).forEach(addGroupings)
     }
 
+    function addSubgroupings(d) {
+        if (d.subgroup) {
+            d.subgrouping = d.grouping
+            nodeDict(root)[d.grouping].subgrouping = nodeDict(root)[d.grouping].grouping
+        } else {
+            d.subgrouping = "Other"
+        }
+
+        getAllChildren(d).forEach(addSubgroupings)
+    }
+
     function toggleIgnore(d) {
         d.ignore = !d.ignore
         if (d.other) d.other = false
+        if (d.subgroup) d.subgroup = false
     }
 
     function toggleOther(d) {
         d.other = !d.other
+        if (d.ignore) d.ignore = false
+        if (d.subgroup) d.subgroup = false
+    }
+
+    function toggleSubgroup(d) {
+        d.subgroup = !d.subgroup
+        if (d.other) d.other = false
         if (d.ignore) d.ignore = false
     }
 
@@ -764,7 +787,9 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         center = false
 
-        if (d3.event.shiftKey) {
+        if (d3.event.shiftKey && d3.event.altKey) {
+            toggleSubgroup(d)
+        } else if (d3.event.shiftKey) {
             toggleIgnore(d)
         } else if (d3.event.altKey) {
             toggleOther(d)
@@ -806,7 +831,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.forEach(function(n) {showNodes(n, redraw = true)})
             updateTree(root)
         } else {
-            // console.log(node)
             while (node.parent) {
                 node.hidden = false
                 node.parent._children = spliceByName(node, node.parent._children)
@@ -829,7 +853,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             let d = nodeDict(root)[strain]
             if (d) {
                 showNodes(d, redraw = false)
-                console.log("Showing: " + strain)
             } else {
                 console.log("Could not find strain: " + strain)
             }
@@ -946,7 +969,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             })
             .on('click', click)
             .on('mouseover', function (d) {
-                console.log(d);
                 tooltip.style("visibility", "visible")
                     .html('Strain: ' + d.name +
                         '<br>Alias: ' + d.compressed_name +
@@ -1012,7 +1034,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         node.select("circle.nodeCircle")
             .attr("r", 6)
             .style("stroke", function (d) {
-                // console.log("setting color: " + d.name)
                 return d._children ? "black" : "white";
             })
             .style("fill", function (d) {
@@ -1022,6 +1043,8 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                     return "goldenrod"
                 } else if (d.new) {
                     return "blue"
+                } else if (d.subgroup) {
+                    return "MediumPurple"
                 }
                 return "forestgreen"
             });
