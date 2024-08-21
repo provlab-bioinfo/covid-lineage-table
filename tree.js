@@ -300,10 +300,11 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         // Deignore grouping nodes
         let groupings = new Set(df['grouping'].unique().values)
         let subgroupings = new Set(df.query(df["subgrouping"].ne("Other"))['alias'].unique().values).difference(groupings)
-        groupings = Array.from(groupings);
-        subgroupings = Array.from(subgroupings);
+        groupings = Array.from(groupings)
+        subgroupings = Array.from(subgroupings)
+        allgroupings = groupings.concat(subgroupings)
         console.log(subgroupings)
-        console.log(groupings.concat(subgroupings))
+        console.log()
         showStrains(groupings.concat(subgroupings))
         let visible = getVisibleNodes(root).map(function(node){return node.compressed_name})
 
@@ -345,7 +346,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.ignore = false
             //update(node)
         })
-        showStrains(newVisible.concat(groupings))
+        showStrains(newVisible.concat(allgroupings))
     }
 
     function exportTable() {
@@ -620,7 +621,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         if (!d.parent) {
             d.grouping = d.compressed_name
-        } else if (d.hidden || d.ignore) {
+        } else if (d.hidden || d.ignore || d.subgroup) {
             d.grouping = d.parent.grouping 
         } else {
             d.grouping = d.compressed_name
@@ -633,7 +634,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     function addSubgroupings(d) {
         if (d.subgroup) {
-            d.subgrouping = d.grouping
+            d.subgrouping = d.compressed_name
             nodeDict(root)[d.grouping].subgrouping = nodeDict(root)[d.grouping].grouping
         } else {
             d.subgrouping = "Other"
@@ -978,6 +979,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                         '<br>Grouping: ' + (d.grouping ? d.grouping : "NA") + 
                         '<br>Label: ' + (d.label ? d.label : "NA")
                     )
+                console.log(d)
             })
             .on("mousemove", function () {
                 return tooltip.style("top", (d3.event.pageY + 10) + "px").style("left", (d3.event.pageX + 10) + "px");
