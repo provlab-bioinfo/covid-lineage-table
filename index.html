@@ -16,7 +16,7 @@
   .toolbar {
     position: fixed;
     top: 10px;
-    left: 145px;
+    left: 190px;
     }
 
   .helpbox {
@@ -32,9 +32,21 @@
 
   .textbox {
     position: fixed;
-    top: 10px;
+    top: 60px;
     left: 10px;
     }
+
+  .textboxbar1 {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+  }
+
+  .textboxbar2 {
+    position: fixed;
+    top: 35px;
+    left: 10px;
+  }
 
   .node circle {
     fill: #fff;
@@ -77,6 +89,8 @@
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
 <body>
+  <div id="textboxbar1" class="textboxbar1"></div>
+  <div id="textboxbar2" class="textboxbar2"></div>
   <div id="textbox" class="textbox"></div>
   <div id="toolbar" class="toolbar"></div>
   <div id="helpbox" class="helpbox"></div>
