@@ -55,6 +55,14 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     treeNodes.forEach(add_fields)
 
+    const nodeType = {
+        grouping: 'grouping',
+        subgroup: 'subgroup',
+        ignore: 'ignore',
+        other: 'other',
+        new: 'new'
+      };
+
     function add_fields(node) {
         node.ignore = false
         node.other = false
@@ -62,6 +70,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         node.grouping = null
         node.subgrouping = null
         node.hidden = false
+        //node.type = nodeType.grouping
         if (!node.children) node.children = []
     }
 
@@ -169,90 +178,45 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             nodeTo = document.getElementById("toSelect").value
             
             if (strains == "" || nodeFrom == "From" || nodeTo == "To") return
-            
-            console.log(strains)
-            console.log(nodeFrom)
-            console.log(nodeTo)
 
-            
+            nodes = findNodesByStrain(strains)
 
-            showStrains(strains)
+            switch (nodeFrom) {
+                case "All":
+                    if (nodeTo == "Subgroup") nodes = nodes.filter(node => node.ignore || node.subgroup || node.other)
+                break;
+                case "Grouping":
+                    nodes = nodes.filter(node => !node.ignore && !node.subgroup && !node.other)
+                break;
+                case "Subgroup":
+                    nodes = nodes.filter(node => node.subgroup)
+                break;
+                case "Ignored":
+                    nodes = nodes.filter(node => node.ignore)
+                break;
+                case "Other":
+                    nodes = nodes.filter(node => node.other)
+                break;
+            }
+
+            switch (nodeTo) {
+                case "Grouping":
+                    nodes.map(node => setGrouping(node))
+                break;
+                case "Subgroup":
+                    nodes.map(node => setSubgroup(node))
+                break;
+                case "Ignored":
+                    nodes.map(node => setIgnore(node))
+                break;
+                case "Other":
+                    nodes.map(node => setOther(node))
+                break;
+            }
+            
+            showStrains(strains, reset = true)
             showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
         });
-
-    // var to = d3.select("#toolbar")
-    //     .append("select")
-    //     .on("change", function () {
-    //         var select = d3.select("select").node().value;
-    //         if (select == "To") return
-
-    //         var node = findNode(select)
-    //         showNodes(node)
-    //         centerNode(node)
-
-    //         while (node.parent) {
-    //             node.color = "#e74c3c";
-    //             node = node.parent;
-    //         }
-
-    //         update(node)
-    //         removePaths()
-    //     });
-
-    // select.append("option")
-    //     .attr("value", "To")
-    //     .attr("selected", "true")
-    //     .text("To");
-    
-    // new Array("Grouping", "Subgrouping", "Ignored", "Other").forEach(function (node) {
-    //         select.append("option")
-    //             .attr("value", node)
-    //             .text(node);
-    // });
-
-
-    // d3.select("#textboxbar2").append("text").text("   ")
-
-    // d3.select("#textboxbar2").append("button")
-    //     .style("background-color", "forestgreen")
-    //     .text("  G  ").on("click", function () {
-    //         strains = document.getElementById("strainTextArea").value.split("\n");
-    //         showStrains(strains)
-    //         findNodesByStrain(strains).forEach(toggleGrouping)
-    //         showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
-    //     });
-
-    // d3.select("#textboxbar2").append("button")
-    //     .style("background-color", "MediumPurple")
-    //     .text("  S  ").on("click", function () {
-    //         strains = document.getElementById("strainTextArea").value.split("\n");
-    //         showStrains(strains)
-    //         findNodesByStrain(strains).forEach(toggleSubgroup)
-    //         showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
-    //         console.log(strains)
-    //         console.log(findNodesByStrain(strains))
-            
-    //     });
-
-    // d3.select("#textboxbar2").append("button")
-    // .style("background-color", "goldenrod")
-    //     .text("  O  ").on("click", function () {
-    //         strains = document.getElementById("strainTextArea").value.split("\n");
-    //         showStrains(strains)
-    //         findNodesByStrain(strains).forEach(toggleOther)
-    //         showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
-
-    //     });
-
-    // d3.select("#textboxbar2").append("button")
-    //     .style("background-color", "firebrick")
-    //     .text("  I  ").on("click", function () {
-    //         strains = document.getElementById("strainTextArea").value.split("\n");
-    //         showStrains(strains)
-    //         findNodesByStrain(strains).forEach(toggleIgnore)
-    //         showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
-
-    //     });
 
     // Toolbar
 
@@ -824,6 +788,30 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     function toggleSubgroup(d) {
         d.subgroup = !d.subgroup
+        if (d.other) d.other = false
+        if (d.ignore) d.ignore = false
+    }
+
+    function setGrouping(d) {
+        if (d.ignore) d.ignore = false
+        if (d.other) d.other = false
+        if (d.subgroup) d.subgroup = false
+    }
+
+    function setIgnore(d) {
+        d.ignore = true
+        if (d.other) d.other = false
+        if (d.subgroup) d.subgroup = false
+    }
+
+    function setOther(d) {
+        d.other = true
+        if (d.ignore) d.ignore = false
+        if (d.subgroup) d.subgroup = false
+    }
+
+    function setSubgroup(d) {
+        d.subgroup = true
         if (d.other) d.other = false
         if (d.ignore) d.ignore = false
     }
