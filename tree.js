@@ -214,7 +214,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                 break;
             }
             
-            showStrains(strains, reset = true)
+            showStrains(strains, reset = false)
             showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
         });
 
