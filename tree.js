@@ -387,17 +387,26 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         
         var reader = new FileReader(); 
         var file = document.querySelector('input[type=file]').files[0];      
-        reader.addEventListener("load", parseFile, false);
         if (file) {
-            reader.readAsText(file);
-        }      
+            dfd.readCSV(file).then((df) => {
+                console.log("Got " + file)
+                df.print()
+                if (!df.columns.includes("subgrouping")) df = df.addColumn("subgrouping",Array(df.index.length).fill("Other"))
+                df.print()
+                importTable(df)
+            })
+        }
 
         function parseFile() {
-            var data = d3.csv.parse(reader.result, function(d){
-                return [d.name, d.alias, d.grouping, d.subgrouping, d.label]
-              });
-            let df = new dfd.DataFrame(data, { columns: ["name","alias","grouping","subgrouping","label"] })
-            importTable(df)
+            
+
+
+
+            // var data = d3.csv.parse(reader.result, function(d){
+            //     return [d.name, d.alias, d.grouping, d.subgrouping, d.label]
+            //   });
+            // let df = new dfd.DataFrame(data, { columns: ["name","alias","grouping","subgrouping","label"] })
+            // importTable(df)
         }
 
         // var f = event.target.files[0]; // FileList object
