@@ -95,6 +95,9 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     //#endregion Initial setup
 
     //#region UI
+    function getTextBox(name) {
+        return document.getElementById(name).value.split("\n").filter(elm => elm);
+     }
 
     d3.select("#textbox")
         .append("foreignObject")
@@ -104,14 +107,14 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     d3.select("#textboxbar1").append("button")
         .text("Add").on("click", function () {
-            strains = document.getElementById("strainTextArea").value.split("\n");
-            showStrains(strains, reset = false)
+            strains = getTextBox("strainTextArea")
+            showStrains(strains)
             showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
         });
 
     d3.select("#textboxbar1").append("button")
         .text("Remove").on("click", function () {
-            strains = document.getElementById("strainTextArea").value.split("\n")
+            strains = getTextBox("strainTextArea")
             visible = getVisibleNodes(root).map((x) => x.compressed_name)
             let difference = visible.filter(x => !strains.includes(x));       
             showStrains(difference)
@@ -120,7 +123,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     d3.select("#textboxbar1").append("button")
         .text("Only").on("click", function () {
-            strains = document.getElementById("strainTextArea").value.split("\n");
+            strains = getTextBox("strainTextArea")
             showStrains(strains)
             showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
         });
@@ -173,7 +176,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     
     d3.select("#textboxbar2").append("button")
         .text("Set").on("click", function () {
-            strains = document.getElementById("strainTextArea").value.split("\n");
+            strains = getTextBox("strainTextArea")
             nodeFrom = document.getElementById("fromSelect").value
             nodeTo = document.getElementById("toSelect").value
             
