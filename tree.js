@@ -102,7 +102,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     d3.select("#textbox")
         .append("foreignObject")
         .html(function (d) {
-            return '<textarea id="strainTextArea" rows="10" cols="16">AY.113\nP.3\nB.1.1.202\nB.1.23\nCC.1\nXAY\nB.1.36\nXBB.2.3.17\nBA.2.75.4\nB.1.581\nB.1.36.17\nB.1.112\nB.1.177.12\nEF.1.1\nB.1.1.426\nC.32\nFL.2.1\nXBB.1.18\nBA.2.23\nB.1.1.349\nB.1.348\nB.1.438.2\nXAF\nGD.1\nBA.2.3.5\nBA.5.2.21\nB.4.4\nXB\nB.1.36.19\nAY.127.3</textarea>'
+            return '<textarea id="strainTextArea" rows="10" cols="16">KP.2.2\nKP.2.10\nJN.1.28\nKP.3.2\nKP.3.1.1\nKP.2.3.1\nKP.3\nJN.1.26\nKP.2\nLB.1\nKP.1.1.3\nKP.3.3\nKP.2.3\nJN.1.16.1\nKP.3.1</textarea>'
         })
 
     d3.select("#textboxbar1").append("button")
@@ -770,11 +770,13 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     }
 
     function addSubgroupings(d) {
-        if (d.subgroup) {
+        if (!d.parent) { //root node
+            d.subgrouping = d.label
+        } else if (d.subgroup || !(d.hidden || d.ignore)) { // subgroup or grouping
             d.subgrouping = d.compressed_name
-            nodeDict(root)[d.grouping].subgrouping = nodeDict(root)[d.grouping].grouping
+            nodeDict(root)[d.grouping].subgrouping = nodeDict(root)[d.grouping].label
         } else {
-            d.subgrouping = "Other"
+            d.subgrouping = d.parent.subgrouping
         }
 
         getAllChildren(d).forEach(addSubgroupings)
