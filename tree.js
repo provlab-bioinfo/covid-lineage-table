@@ -432,11 +432,13 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         // Deignore grouping nodes
         let groupings = new Set(df['grouping'].unique().values)
-        let subgroupings = new Set(df.query(df["subgrouping"].ne("Other"))['alias'].unique().values).difference(groupings)
+        let subgroupings = new Set(df.query(df["subgrouping"].ne("Other").and(df["subgrouping"].ne("Recombinant")))['subgrouping'].unique().values).difference(groupings)
+
         groupings = Array.from(groupings)
         subgroupings = Array.from(subgroupings)
         allgroupings = groupings.concat(subgroupings)
-        console.log(subgroupings)
+        console.log("Groupings: " + groupings)
+        console.log("Subgroupings: " + subgroupings)
         console.log()
         showStrains(groupings.concat(subgroupings))
         let visible = getVisibleNodes(root).map(function(node){return node.compressed_name})
@@ -456,12 +458,12 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         })
 
         // Process other nodes
-        let others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
-        others = others.concat(df.groupby(["label"]).getGroup(["Recombinant other"])["grouping"].unique().values)
+        others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
+        others = others.concat(df.groupby(["label"]).getGroup(["Recombinant"])["grouping"].unique().values)
         others.forEach(function(name) {
             node = findNode(name)
-            node.other = true
-            node.ignore = false
+            node.other = false
+            node.ignore = true
             //update(node)
         })
 
@@ -505,7 +507,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         nodes.forEach(function(node) {            
             if (node.label == "Other" && node.name.startsWith("X")) {
-                node.label = "Recombinant other"
+               node.label = "Recombinant"
             }
 
             let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.subgrouping, node.label, node.designationDate].join(",");
@@ -748,8 +750,8 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     function addMaingroupings(d) {
         if (d.new) {
-            if (d.name.startsWith("X") && d.name.length == 3) {
-                d.other = true
+            if (d.name.startsWith("X") && d.name.length <= 3) {
+               d.other = true
             } else {
                 d.ignore = true
             }
