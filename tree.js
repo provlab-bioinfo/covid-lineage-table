@@ -747,43 +747,51 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     //#region Node metadata
 
     function addGroupings(node) {
+        if (node.type == nodeType.new) {
+            node.type = nodeType.ignored
+        }
         addMaingroupings(node)
         addSubgroupings(node)
     }
 
     function addMaingroupings(node) {
-        if (node.type == nodeType.grouping) {
-            node.grouping = node.compressed_name
-        } else if (node.type == nodeType.new) {
-            if (node.name.startsWith("X") && node.name.length <= 3) {
-                node.type = nodeType.other
-            } else {
-                node.type = nodeType.ignored
-            }
-        }
 
-        if (!node.parent) {
-            
+        if (!node.parent) { // root node
+            node.grouping = "Other"
+        } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) {
+            node.grouping = "Other"
         } else if (node.hidden || node.type == nodeType.ignored || node.type == nodeType.subgroup) {
             node.grouping = node.parent.grouping 
         } else {
             node.grouping = node.compressed_name
         }
-
-        node.label = nodeDict(root)[node.grouping].other ? "Other" : node.grouping
+        //node.label = nodeDict(root)[node.grouping].type == nodeType.other ? "Other" : node.grouping
 
         getAllChildren(node).forEach(addGroupings)
     }
 
     function addSubgroupings(node) {
-        if (!node.parent) { //root node
-            node.subgrouping = node.label
-        } else if (node.type == nodeType.subgroup || !(node.hidden || node.type == nodeType.ignored)) { // subgroup or grouping
-            node.subgrouping = node.compressed_name
-            nodeDict(root)[node.grouping].subgrouping = nodeDict(root)[node.grouping].label
+
+        if (!node.parent) { // root node
+            node.subgrouping = "Other"
+        } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) {
+            node.subgrouping = "Other"
+        } else if (node.hidden || node.type == nodeType.ignored) {
+            node.subgrouping = node.parent.subgrouping 
         } else {
-            node.subgrouping = node.parent.subgrouping
+            node.subgrouping = node.compressed_name
         }
+
+
+
+        // if (!node.parent) { // root node
+        //     node.subgrouping = "Other"
+        // } else if (node.type == nodeType.subgroup || !(node.hidden || node.type == nodeType.ignored)) { // subgroup or grouping
+        //     node.subgrouping = node.compressed_name
+        //     nodeDict(root)[node.grouping].subgrouping = nodeDict(root)[node.grouping].label
+        // } else {
+        //     node.subgrouping = node.parent.subgrouping
+        // }
 
         getAllChildren(node).forEach(addSubgroupings)
     }
