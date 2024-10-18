@@ -462,14 +462,14 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.type = nodeType.subgroup
         })
 
-        // Process other nodes
-        others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
-        others = others.concat(df.groupby(["label"]).getGroup(["Recombinant"])["grouping"].unique().values)
-        others.forEach(function(name) {
-            node = findNode(name)
-            node.type = nodeType.other
-            //update(node)
-        })
+        // // Process other nodes
+        // others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
+        // others = others.concat(df.groupby(["label"]).getGroup(["Recombinant"])["grouping"].unique().values)
+        // others.forEach(function(name) {
+        //     node = findNode(name)
+        //     node.type = nodeType.other
+        //     //update(node)
+        // })
 
         // Process new nodes
         let refStrains = nodeList(root).map(function(node){return node.compressed_name})
@@ -499,21 +499,16 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                        "clade": node.nextstrain, 
                        "grouping": node.grouping, 
                        "subgrouping": node.subgrouping, 
-                       "label": node.other, 
-                       "designationDate": node.designationDate}
+                       "designationdate": node.designationDate}
             data.push(strain)
         });
 
         let csvContent = "data:text/csv;charset=utf-8,";
 
-        csvContent += ["name","alias","clade","grouping","subgrouping","label","designationDate"].join(",") + "\r\n";
+        csvContent += ["name","alias","clade","grouping","subgrouping","designationdate"].join(",") + "\r\n";
 
-        nodes.forEach(function(node) {            
-            if (node.label == "Other" && node.name.startsWith("X")) {
-               node.label = "Recombinant"
-            }
-
-            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.subgrouping, node.label, node.designationDate].join(",");
+        nodes.forEach(function(node) {  
+            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.subgrouping, node.designationDate].join(",");
             csvContent += row + "\r\n";
         });
 
@@ -1108,17 +1103,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             links = tree.links(nodes);
 
         // Set widths between levels based on maxLabelLength.
-        nodes.forEach(function (d) {
-            d.y = (d.depth * (maxLabelLength * 10)); //maxLabelLength * 10px
+        nodes.forEach(function (node) {
+            node.y = (node.depth * (maxLabelLength * 10)); //maxLabelLength * 10px
             // alternatively to keep a fixed scale one can set a fixed depth per level
             // Normalize for fixed-depth by commenting out below line
-            d.y = (d.depth * 75); //500px per level.
+            node.y = (node.depth * 75); //500px per level.
         });
 
         // Update the nodes…
         var node = svgGroup.selectAll("g.node")
-            .data(nodes, function (d) {
-                return d.id || (d.id = ++i);
+            .data(nodes, function (node) {
+                return node.id || (node.id = ++i);
             });
 
         // Enter any new nodes at the parent's previous position.
@@ -1128,17 +1123,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                 return "translate(" + source.y0 + "," + source.x0 + ")";
             })
             .on('click', click)
-            .on('mouseover', function (d) {
+            .on('mouseover', function (node) {
                 tooltip.style("visibility", "visible")
-                    .html('Strain: ' + d.name +
-                        '<br>Alias: ' + d.compressed_name +
-                        '<br>Nextclade: ' + d.nextstrain +
-                        '<br>Designation Date: ' + d.designationDate +
+                    .html('Strain: ' + node.name +
+                        '<br>Alias: ' + node.compressed_name +
+                        '<br>Nextclade: ' + node.nextstrain +
+                        '<br>Designation Date: ' + node.designationDate +
                         //'<br>Hidden: ' + d.hidden + 
-                        '<br>Grouping: ' + (d.grouping ? d.grouping : "NA") + 
-                        '<br>Label: ' + (d.label ? d.label : "NA")
+                        '<br>Grouping: ' + (node.grouping ? node.grouping : "NA") +                         
+                        '<br>Subgrouping: ' + (node.subgrouping ? node.subgrouping : "NA")
                     )
-                console.log(d)
+                console.log(node)
             })
             .on("mousemove", function () {
                 return tooltip.style("top", (d3.event.pageY + 10) + "px").style("left", (d3.event.pageX + 10) + "px");
