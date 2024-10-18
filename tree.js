@@ -48,6 +48,23 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     var viewerWidth = $(document).width();
     var viewerHeight = $(document).height();
 
+    // node enums
+    const nodeType = {
+        group: 'group',
+        subgroup: 'subgroup',
+        ignored: 'ignored',
+        //other: 'other',
+        new: 'new'
+      };
+
+    const nodeColor = {
+        group: "forestgreen",
+        subgroup: "MediumPurple",
+        ignored: "firebrick",
+        //other: "goldenrod",
+        new: "DodgerBlue"
+    }
+
     var tree = d3.layout.tree()
         .size([viewerHeight, viewerWidth]);
 
@@ -55,22 +72,11 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     treeNodes.forEach(add_fields)
 
-    const nodeType = {
-        grouping: 'grouping',
-        subgroup: 'subgroup',
-        ignore: 'ignore',
-        other: 'other',
-        new: 'new'
-      };
-
     function add_fields(node) {
-        node.ignore = false
-        node.other = false
-        node.subgroup = false
+        node.type = nodeType.ignored
         node.grouping = null
         node.subgrouping = null
         node.hidden = false
-        //node.type = nodeType.grouping
         if (!node.children) node.children = []
     }
 
@@ -186,35 +192,35 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
             switch (nodeFrom) {
                 case "All":
-                    if (nodeTo == "Subgroup") nodes = nodes.filter(node => node.ignore || node.subgroup || node.other)
+                    if (nodeTo == "Subgroup") nodes = nodes.filter(node => node.type != nodeType.group)
                 break;
                 case "Grouping":
-                    nodes = nodes.filter(node => !node.ignore && !node.subgroup && !node.other)
+                    nodes = nodes.filter(node => node.type != nodeType.ignored && node.type != nodeType.subgroup && node.type != nodeType.other)
                 break;
                 case "Subgroup":
-                    nodes = nodes.filter(node => node.subgroup)
+                    nodes = nodes.filter(node => node.type == nodeType.subgroup)
                 break;
                 case "Ignored":
-                    nodes = nodes.filter(node => node.ignore)
+                    nodes = nodes.filter(node => node.type == nodeType.ignored)
                 break;
-                case "Other":
-                    nodes = nodes.filter(node => node.other)
-                break;
+                //case "Other":
+                //    nodes = nodes.filter(node => node.type == nodeType.other)
+               // break;
             }
 
             switch (nodeTo) {
                 case "Grouping":
-                    nodes.map(node => setGrouping(node))
+                    nodes.map(node => setType(node, nodeType.group))
                 break;
                 case "Subgroup":
-                    nodes.map(node => setSubgroup(node))
+                    nodes.map(node => setType(node, nodeType.subgroup))
                 break;
                 case "Ignored":
-                    nodes.map(node => setIgnore(node))
+                    nodes.map(node => setType(node, nodeType.ignored))
                 break;
-                case "Other":
-                    nodes.map(node => setOther(node))
-                break;
+               // case "Other":
+                //    nodes.map(node => setType(node, nodeType.other))
+                //break;
             }
             
             showStrains(strains, reset = false)
@@ -354,20 +360,21 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     d3.select("#helpbox").append("foreignObject")
         .html(function (d) {
-            return "<table><tr><td style='text-align: center; background-color:forestgreen;'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
-            <tr><td style='text-align: center; background-color:MediumPurple;'><font color='white'>Purple</font></td><td>&nbsp&nbsp&nbspSub-grouping strains</td></tr> \
-            <tr><td style='text-align: center; background-color:goldenrod;'><font color='white'>Yellow</font></td><td>&nbsp&nbsp&nbsp'Other' strains</td></tr> \
-            <tr><td style='text-align: center; background-color:firebrick;'><font color='white'>Red</font></td><td>&nbsp&nbsp&nbspIgnored strains</td></tr> \
-            <tr><td style='text-align: center; background-color:DodgerBlue;'><font color='white'>Blue</font></td><td>&nbsp&nbsp&nbspNew strains</td></tr> \
+            return `<table><tr><td style='text-align: center; background-color:${nodeColor.group};'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
+            <tr><td style='text-align: center; background-color:${nodeColor.subgroup};'><font color='white'>Purple</font></td><td>&nbsp&nbsp&nbspSub-grouping strains</td></tr> \
+<tr><td style='text-align: center; background-color:${nodeColor.ignored};'><font color='white'>Red</font></td><td>&nbsp&nbsp&nbspIgnored strains</td></tr> \
+            <tr><td style='text-align: center; background-color:${nodeColor.new};'><font color='white'>Blue</font></td><td>&nbsp&nbsp&nbspNew strains</td></tr> \
             <tr><td><br /></td></tr> \
             <tr><td style='text-align: right;'>Left Click:</td><td>Un/collapse children</td></tr> \
             <tr><td style='text-align: right;'>CTRL + Click:</td><td>Collapse Node</td></tr> \
-            <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \
             <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr> \
-            <tr><td style='text-align: right;'>CTRL + ALT + <br>&nbsp&nbspLeft Click:&nbsp&nbsp</td><td>Assign as sub-group</td></tr> \
+            <tr><td style='text-align: right;'>ALT + Left Click:&nbsp&nbsp</td><td>Assign as sub-group</td></tr> \
             </table><br> \
-            Database last updated: <a href='https://mdu-phl.github.io/pango-watch/'>" + treeData.lastChanged + "</a>"      
+            Database last updated: <a href='https://mdu-phl.github.io/pango-watch/'>${treeData.lastChanged}</a>`      
         })
+         /* <tr><td style='text-align: center; background-color:${nodeColor.other};'><font color='white'>Yellow</font></td><td>&nbsp&nbsp&nbsp'Other' strains</td></tr> \
+            
+         <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \*/
     
     var tooltip = d3.select("body")
         .append("tspan")
@@ -427,16 +434,18 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         // Ignore everything
         nodeList(root).forEach(function(node) {
-            node.ignore = true
+            node.type = nodeType.ignored
         })
 
         // Deignore grouping nodes
         let groupings = new Set(df['grouping'].unique().values)
-        let subgroupings = new Set(df.query(df["subgrouping"].ne("Other"))['alias'].unique().values).difference(groupings)
+        let subgroupings = new Set(df.query(df["subgrouping"].ne("Other").and(df["subgrouping"].ne("Recombinant")))['subgrouping'].unique().values).difference(groupings)
+
         groupings = Array.from(groupings)
         subgroupings = Array.from(subgroupings)
         allgroupings = groupings.concat(subgroupings)
-        console.log(subgroupings)
+        console.log("Groupings: " + groupings)
+        console.log("Subgroupings: " + subgroupings)
         console.log()
         showStrains(groupings.concat(subgroupings))
         let visible = getVisibleNodes(root).map(function(node){return node.compressed_name})
@@ -444,26 +453,23 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         let groups = visible.filter(x => groupings.includes(x))
         groups.forEach(function(name) {
             node = findNode(name)
-            node.ignore = false
-            node.subgroup = false
+            node.type = nodeType.group
         })
 
         let subgroups = visible.filter(x => subgroupings.includes(x))
         subgroups.forEach(function(name) {
             node = findNode(name)
-            node.ignore = false
-            node.subgroup = true
+            node.type = nodeType.subgroup
         })
 
-        // Process other nodes
-        let others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
-        others = others.concat(df.groupby(["label"]).getGroup(["Recombinant other"])["grouping"].unique().values)
-        others.forEach(function(name) {
-            node = findNode(name)
-            node.other = true
-            node.ignore = false
-            //update(node)
-        })
+        // // Process other nodes
+        // others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
+        // others = others.concat(df.groupby(["label"]).getGroup(["Recombinant"])["grouping"].unique().values)
+        // others.forEach(function(name) {
+        //     node = findNode(name)
+        //     node.type = nodeType.other
+        //     //update(node)
+        // })
 
         // Process new nodes
         let refStrains = nodeList(root).map(function(node){return node.compressed_name})
@@ -475,8 +481,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         newVisible = newVisible.filter(x => !oldStrains.includes(x))
         newVisible.forEach(function (strain) {
             node = findNode(strain)
-            node.new = true
-            node.ignore = false
+            node.type = nodeType.new
             //update(node)
         })
         showStrains(newVisible.concat(allgroupings))
@@ -494,21 +499,16 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                        "clade": node.nextstrain, 
                        "grouping": node.grouping, 
                        "subgrouping": node.subgrouping, 
-                       "label": node.other, 
-                       "designationDate": node.designationDate}
+                       "designationdate": node.designationDate}
             data.push(strain)
         });
 
         let csvContent = "data:text/csv;charset=utf-8,";
 
-        csvContent += ["name","alias","clade","grouping","subgrouping","label","designationDate"].join(",") + "\r\n";
+        csvContent += ["name","alias","clade","grouping","subgrouping","designationdate"].join(",") + "\r\n";
 
-        nodes.forEach(function(node) {            
-            if (node.label == "Other" && node.name.startsWith("X")) {
-                node.label = "Recombinant other"
-            }
-
-            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.subgrouping, node.label, node.designationDate].join(",");
+        nodes.forEach(function(node) {  
+            let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.subgrouping, node.designationDate].join(",");
             csvContent += row + "\r\n";
         });
 
@@ -551,18 +551,18 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         mermaid = []
         
         getVisibleNodes(root).forEach(function(node) {
-            if (!node.ignore) {
+            if (node.type != nodeType.ignored) {
                 mermaid.push("style " + node.compressed_name + " stroke:DarkBlue, stroke-width:4px") // Can't use RGB values starting with #. Output file will not show anything past a #.
             }
 
             if (getAllChildren(node).length) {
-                links = getAllChildren(node).map((x) => node.compressed_name + (node.ignore ? " -.-> " : " --> ") + x.compressed_name)
+                links = getAllChildren(node).map((x) => node.compressed_name + (node.type == nodetype.ignored ? " -.-> " : " --> ") + x.compressed_name)
                 mermaid.push(...links)
             }
 
             if (node.otherParents) {
                 parents = node.otherParents.map((x) => findNode(x))
-                links = parents.map((x) => x.compressed_name + (x.ignore ? " -.-> " : " --> ") + node.compressed_name)
+                links = parents.map((x) => x.compressed_name + (x.type == nodeType.ignored ? " -.-> " : " --> ") + node.compressed_name)
                 mermaid.push(...links)
             }
 
@@ -741,93 +741,78 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     //#region Node metadata
 
-    function addGroupings(d) {
-        addMaingroupings(d)
-        addSubgroupings(d)
+    function addGroupings(node) {
+        if (node.type == nodeType.new) {
+            node.type = nodeType.ignored
+        }
+        addMaingroupings(node)
+        addSubgroupings(node)
     }
 
-    function addMaingroupings(d) {
-        if (d.new) {
-            if (d.name.startsWith("X") && d.name.length == 3) {
-                d.other = true
-            } else {
-                d.ignore = true
-            }
-            d.new = false
-        }
+    function addMaingroupings(node) {
 
-        if (!d.parent) {
-            d.grouping = d.compressed_name
-        } else if (d.hidden || d.ignore || d.subgroup) {
-            d.grouping = d.parent.grouping 
+        if (!node.parent) { // root node
+            node.grouping = "Other"
+        } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) {
+            node.grouping = "Other"
+        } else if (node.hidden || node.type == nodeType.ignored || node.type == nodeType.subgroup) {
+            node.grouping = node.parent.grouping 
         } else {
-            d.grouping = d.compressed_name
+            node.grouping = node.compressed_name
         }
+        //node.label = nodeDict(root)[node.grouping].type == nodeType.other ? "Other" : node.grouping
 
-        d.label = nodeDict(root)[d.grouping].other ? "Other" : d.grouping
-
-        getAllChildren(d).forEach(addGroupings)
+        getAllChildren(node).forEach(addGroupings)
     }
 
-    function addSubgroupings(d) {
-        if (!d.parent) { //root node
-            d.subgrouping = d.label
-        } else if (d.subgroup || !(d.hidden || d.ignore)) { // subgroup or grouping
-            d.subgrouping = d.compressed_name
-            nodeDict(root)[d.grouping].subgrouping = nodeDict(root)[d.grouping].label
+    function addSubgroupings(node) {
+
+        if (!node.parent) { // root node
+            node.subgrouping = "Other"
+        } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) {
+            node.subgrouping = "Other"
+        } else if (node.hidden || node.type == nodeType.ignored) {
+            node.subgrouping = node.parent.subgrouping 
         } else {
-            d.subgrouping = d.parent.subgrouping
+            node.subgrouping = node.compressed_name
         }
 
-        getAllChildren(d).forEach(addSubgroupings)
+
+
+        // if (!node.parent) { // root node
+        //     node.subgrouping = "Other"
+        // } else if (node.type == nodeType.subgroup || !(node.hidden || node.type == nodeType.ignored)) { // subgroup or grouping
+        //     node.subgrouping = node.compressed_name
+        //     nodeDict(root)[node.grouping].subgrouping = nodeDict(root)[node.grouping].label
+        // } else {
+        //     node.subgrouping = node.parent.subgrouping
+        // }
+
+        getAllChildren(node).forEach(addSubgroupings)
     }
 
-    function toggleGrouping(d) {
-        if (d.ignore) d.ignore = false
-        if (d.other) d.other = false
-        if (d.subgroup) d.subgroup = false
+    function toggleType(node, type) {
+        node.type = node.type != type ? type : nodeType.group
     }
 
-    function toggleIgnore(d) {
-        d.ignore = !d.ignore
-        if (d.other) d.other = false
-        if (d.subgroup) d.subgroup = false
-    }
-
-    function toggleOther(d) {
-        d.other = !d.other
-        if (d.ignore) d.ignore = false
-        if (d.subgroup) d.subgroup = false
-    }
-
-    function toggleSubgroup(d) {
-        d.subgroup = !d.subgroup
-        if (d.other) d.other = false
-        if (d.ignore) d.ignore = false
+    function setType(node, type) {
+        node.type = type
     }
 
     function setGrouping(d) {
-        if (d.ignore) d.ignore = false
-        if (d.other) d.other = false
-        if (d.subgroup) d.subgroup = false
+        
     }
 
     function setIgnore(d) {
-        d.ignore = true
-        if (d.other) d.other = false
-        if (d.subgroup) d.subgroup = false
+        node.type = nodeType.ignored
     }
 
     function setOther(d) {
-        d.other = true
-        if (d.ignore) d.ignore = false
-        if (d.subgroup) d.subgroup = false
+        node.type = nodeType.other
     }
 
     function setSubgroup(d) {
-        d.subgroup = true
-        if (d.other) d.other = false
-        if (d.ignore) d.ignore = false
+        node.type = nodeType.subgroup
     }
 
     //#endregion Node metadata
@@ -952,25 +937,25 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         return array
     }
 
-    function click(d) {
+    function click(node) {
         if (d3.event.defaultPrevented) return; // click suppressed
 
         center = false
 
-        if (d3.event.shiftKey && d3.event.altKey) {
-            toggleSubgroup(d)
+        if (d3.event.altKey /*&& d3.event.shiftKey*/) {
+            toggleType(node, nodeType.subgroup)
         } else if (d3.event.shiftKey) {
-            toggleIgnore(d)
-        } else if (d3.event.altKey) {
-            toggleOther(d)
+            toggleType(node, nodeType.ignored)
+        /*} else if (d3.event.altKey) {
+            toggleType(node, nodeType.other)*/
         } else {
-            d = toggleNode(d, d3.event.ctrlKey);
+            node = toggleNode(node, d3.event.ctrlKey);
             center = true
         }
 
-        updateLinks(d)
-        update(d);
-        if (center) centerNode(d)
+        updateLinks(node)
+        update(node);
+        if (center) centerNode(node)
     }
 
     //#endregion Node actions
@@ -987,13 +972,13 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         update(root);
     }
 
-    const removeNewColor = async () => {
-        await wait(2000);
-        nodeList(root).forEach(function (d) {
-            d.new = false;
-        })
-        update(root);
-    }
+    // const removeNewColor = async () => {
+    //     await wait(2000);
+    //     nodeList(root).forEach(function (node) {
+    //         node.new = false;
+    //     })
+    //     update(root);
+    // }
 
     function showNodes(node, redraw = true) {
 
@@ -1118,17 +1103,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             links = tree.links(nodes);
 
         // Set widths between levels based on maxLabelLength.
-        nodes.forEach(function (d) {
-            d.y = (d.depth * (maxLabelLength * 10)); //maxLabelLength * 10px
+        nodes.forEach(function (node) {
+            node.y = (node.depth * (maxLabelLength * 10)); //maxLabelLength * 10px
             // alternatively to keep a fixed scale one can set a fixed depth per level
             // Normalize for fixed-depth by commenting out below line
-            d.y = (d.depth * 75); //500px per level.
+            node.y = (node.depth * 75); //500px per level.
         });
 
         // Update the nodes…
-        node = svgGroup.selectAll("g.node")
-            .data(nodes, function (d) {
-                return d.id || (d.id = ++i);
+        var node = svgGroup.selectAll("g.node")
+            .data(nodes, function (node) {
+                return node.id || (node.id = ++i);
             });
 
         // Enter any new nodes at the parent's previous position.
@@ -1138,17 +1123,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                 return "translate(" + source.y0 + "," + source.x0 + ")";
             })
             .on('click', click)
-            .on('mouseover', function (d) {
+            .on('mouseover', function (node) {
                 tooltip.style("visibility", "visible")
-                    .html('Strain: ' + d.name +
-                        '<br>Alias: ' + d.compressed_name +
-                        '<br>Nextclade: ' + d.nextstrain +
-                        '<br>Designation Date: ' + d.designationDate +
+                    .html('Strain: ' + node.name +
+                        '<br>Alias: ' + node.compressed_name +
+                        '<br>Nextclade: ' + node.nextstrain +
+                        '<br>Designation Date: ' + node.designationDate +
                         //'<br>Hidden: ' + d.hidden + 
-                        '<br>Grouping: ' + (d.grouping ? d.grouping : "NA") + 
-                        '<br>Label: ' + (d.label ? d.label : "NA")
+                        '<br>Grouping: ' + (node.grouping ? node.grouping : "NA") +                         
+                        '<br>Subgrouping: ' + (node.subgrouping ? node.subgrouping : "NA")
                     )
-                console.log(d)
+                console.log(node)
             })
             .on("mousemove", function () {
                 return tooltip.style("top", (d3.event.pageY + 10) + "px").style("left", (d3.event.pageX + 10) + "px");
@@ -1204,27 +1189,18 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         // Change the circle fill depending on whether it has children and is collapsed
         node.select("circle.nodeCircle")
             .attr("r", 6)
-            .style("stroke", function (d) {
-                return d._children ? "black" : "white";
+            .style("stroke", function (node) {
+                return node._children ? "black" : "white";
             })
-            .style("fill", function (d) {
-                if (d.ignore) {
-                    return "firebrick"
-                } else if (d.other) {
-                    return "goldenrod"
-                } else if (d.new) {
-                    return "blue"
-                } else if (d.subgroup) {
-                    return "MediumPurple"
-                }
-                return "forestgreen"
+            .style("fill", function (node) {            
+                return nodeColor[node.type]
             });
 
         // Transition nodes to their new position.
         var nodeUpdate = node.transition()
             .duration(duration)
-            .attr("transform", function (d) {
-                return "translate(" + d.y + "," + d.x + ")";
+            .attr("transform", function (node) {
+                return "translate(" + node.y + "," + node.x + ")";
             });
 
         // Fade the text in
@@ -1248,8 +1224,8 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         // Update the links…
         var link = svgGroup.selectAll("path.link")
-            .data(links, function (d) {
-                return d.target.id;
+            .data(links, function (node) {
+                return node.target.id;
             });
 
         // Enter any new links at the parent's previous position.
@@ -1266,15 +1242,15 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                 });
             });
 
-        d3.selectAll("path").style("stroke", function (d) {
-            if (d.target.color) {
-                return d.target.color
+        d3.selectAll("path").style("stroke", function (node) {            
+            if (node.target.color) {
+                return node.target.color
             } else {
                 return null
             }
         })
-        d3.selectAll("path").style("stroke-width", function (d) {
-            if (d.target.color) {
+        d3.selectAll("path").style("stroke-width", function (node) {
+            if (node.target.color) {
                 return '4px'
             } else {
                 return null
