@@ -134,6 +134,12 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
         });
 
+    // d3.select("#textboxbar1").append("button")
+    //     .text("Non-ignored").on("click", function () {            
+    //         showStrains(getSubgroupingStrains(root))
+    //         showNodes(root) // TODO: not sure why this is needed. Additional links don't get removed without it
+    //     });
+
     // Node colors
 
     var from = d3.select("#textboxbar2")
@@ -150,7 +156,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         .attr("selected", "true")
         .text("From");
 
-    new Array("All", "Grouping", "Subgroup", "Ignored", "Other").forEach(function (node) {
+    new Array("All", "Grouping", "Subgroup", "Ignored").forEach(function (node) {
         from.append("option")
                 .attr("value", node)
                 .text(node);
@@ -172,7 +178,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         .attr("selected", "true")
         .text("To");
 
-    new Array("Grouping", "Subgroup", "Ignored", "Other").forEach(function (node) {
+    new Array("Grouping", "Subgroup", "Ignored").forEach(function (node) {
         from.append("option")
                 .attr("value", node)
                 .text(node);
@@ -203,9 +209,8 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                 case "Ignored":
                     nodes = nodes.filter(node => node.type == nodeType.ignored)
                 break;
-                //case "Other":
-                //    nodes = nodes.filter(node => node.type == nodeType.other)
-               // break;
+                default:
+                    console.debug("Something broke in the Node type From selector")
             }
 
             switch (nodeTo) {
@@ -218,9 +223,8 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                 case "Ignored":
                     nodes.map(node => setType(node, nodeType.ignored))
                 break;
-               // case "Other":
-                //    nodes.map(node => setType(node, nodeType.other))
-                //break;
+                default:
+                    console.debug("Something broke in the Node type To selector")
             }
             
             showStrains(strains, reset = false)
@@ -372,9 +376,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             </table><br> \
             Database last updated: <a href='https://mdu-phl.github.io/pango-watch/'>${treeData.lastChanged}</a>`      
         })
-         /* <tr><td style='text-align: center; background-color:${nodeColor.other};'><font color='white'>Yellow</font></td><td>&nbsp&nbsp&nbsp'Other' strains</td></tr> \
-            
-         <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as 'Other'</td></tr> \*/
     
     var tooltip = d3.select("body")
         .append("tspan")
@@ -400,34 +401,10 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         if (file) {
             dfd.readCSV(file).then((df) => {
                 console.log("Got " + file)
-                df.print()
                 if (!df.columns.includes("subgrouping")) df = df.addColumn("subgrouping",Array(df.index.length).fill("Other"))
-                df.print()
                 importTable(df)
             })
         }
-
-        function parseFile() {
-            
-
-
-
-            // var data = d3.csv.parse(reader.result, function(d){
-            //     return [d.name, d.alias, d.grouping, d.subgrouping, d.label]
-            //   });
-            // let df = new dfd.DataFrame(data, { columns: ["name","alias","grouping","subgrouping","label"] })
-            // importTable(df)
-        }
-
-        // var f = event.target.files[0]; // FileList object
-        // var reader = new FileReader();
-
-        // reader.onload = function (event) {
-        //     loadTable(d3.csv.parse(event.target.result))
-        // };
-
-        // // Read in the file as a data URL.
-        // reader.readAsDataURL(f);
     }
 
     function importTable(df) {
@@ -439,14 +416,11 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         // Deignore grouping nodes
         let groupings = new Set(df['grouping'].unique().values)
-        let subgroupings = new Set(df.query(df["subgrouping"].ne("Other").and(df["subgrouping"].ne("Recombinant")))['subgrouping'].unique().values).difference(groupings)
+        let subgroupings = new Set(df.query(df["subgrouping"].ne("Other"))['subgrouping'].unique().values).difference(groupings)
 
         groupings = Array.from(groupings)
         subgroupings = Array.from(subgroupings)
         allgroupings = groupings.concat(subgroupings)
-        console.log("Groupings: " + groupings)
-        console.log("Subgroupings: " + subgroupings)
-        console.log()
         showStrains(groupings.concat(subgroupings))
         let visible = getVisibleNodes(root).map(function(node){return node.compressed_name})
 
@@ -461,15 +435,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node = findNode(name)
             node.type = nodeType.subgroup
         })
-
-        // // Process other nodes
-        // others = df.groupby(["label"]).getGroup(["Other"])["grouping"].unique().values
-        // others = others.concat(df.groupby(["label"]).getGroup(["Recombinant"])["grouping"].unique().values)
-        // others.forEach(function(name) {
-        //     node = findNode(name)
-        //     node.type = nodeType.other
-        //     //update(node)
-        // })
 
         // Process new nodes
         let refStrains = nodeList(root).map(function(node){return node.compressed_name})
@@ -492,21 +457,22 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         nodes = nodeList(root)
         nodes.sort(function compareByName(a, b) {return a.name.localeCompare(b.name)})
 
-        data = []
-        nodes.forEach(function(node) { 
-            let strain = {"name": node.name, 
-                       "alias": node.compressed_name, 
-                       "clade": node.nextstrain, 
-                       "grouping": node.grouping, 
-                       "subgrouping": node.subgrouping, 
-                       "designationdate": node.designationDate}
-            data.push(strain)
-        });
+        // data = []
+        // nodes.forEach(function(node) { 
+        //     let strain = {"name": node.name, 
+        //                "alias": node.compressed_name, 
+        //                "clade": node.nextstrain, 
+        //                "parent": node.parent,
+        //                "grouping": node.grouping, 
+        //                "subgrouping": node.subgrouping, 
+        //                "designationdate": node.designationDate}
+        //     data.push(strain)
+        // });
 
         let csvContent = "data:text/csv;charset=utf-8,";
 
-        csvContent += ["name","alias","clade","grouping","subgrouping","designationdate"].join(",") + "\r\n";
-
+        csvContent += ["name","alias","clade","grouping","subgrouping","designation"].join(",") + "\r\n";
+       
         nodes.forEach(function(node) {  
             let row = [node.name, node.compressed_name, node.nextstrain, node.grouping, node.subgrouping, node.designationDate].join(",");
             csvContent += row + "\r\n";
