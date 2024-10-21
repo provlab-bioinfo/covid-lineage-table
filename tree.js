@@ -53,7 +53,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         group: 'group',
         subgroup: 'subgroup',
         ignored: 'ignored',
-        //other: 'other',
         new: 'new'
       };
 
@@ -61,9 +60,11 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         group: "forestgreen",
         subgroup: "MediumPurple",
         ignored: "firebrick",
-        //other: "goldenrod",
         new: "DodgerBlue"
     }
+
+    const pathColor = "DodgerBlue"
+    const pathTimeout = 4
 
     var tree = d3.layout.tree()
         .size([viewerHeight, viewerWidth]);
@@ -270,7 +271,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             centerNode(node)
 
             while (node.parent) {
-                node.color = "#e74c3c";
+                node.color = pathColor;
                 node = node.parent;
             }
 
@@ -885,7 +886,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
     const removePaths = async () => {
-        await wait(2000);
+        await wait(pathTimeout*1000);
         nodeList(root).forEach(function (d) {
             d.color = undefined;
         })
