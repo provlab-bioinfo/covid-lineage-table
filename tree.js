@@ -742,53 +742,21 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     //#region Node metadata
 
     function addGroupings(node) {
-        if (node.type == nodeType.new) {
-            node.type = nodeType.ignored
-        }
-        addMaingroupings(node)
-        addSubgroupings(node)
-    }
-
-    function addMaingroupings(node) {
-
+        if (node.type == nodeType.new) node.type = nodeType.ignored
+        
         if (!node.parent) { // root node
-            node.grouping = "Other"
-        } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) {
-            node.grouping = "Other"
-        } else if (node.hidden || node.type == nodeType.ignored || node.type == nodeType.subgroup) {
-            node.grouping = node.parent.grouping 
-        } else {
-            node.grouping = node.compressed_name
-        }
-        //node.label = nodeDict(root)[node.grouping].type == nodeType.other ? "Other" : node.grouping
-
-        getAllChildren(node).forEach(addGroupings)
-    }
-
-    function addSubgroupings(node) {
-
-        if (!node.parent) { // root node
-            node.subgrouping = "Other"
-        } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) {
-            node.subgrouping = "Other"
+            node.grouping = node.subgrouping = "Other"
+        } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) { // Ignored recombinant node
+            node.grouping = node.subgrouping = "Other" //"Recombinant"
         } else if (node.hidden || node.type == nodeType.ignored) {
-            node.subgrouping = node.parent.subgrouping 
+            node.grouping = node.parent.grouping 
+            node.subgrouping = node.parent.subgrouping            
         } else {
+            node.grouping = (node.type == nodeType.subgroup) ? node.parent.grouping : node.compressed_name
             node.subgrouping = node.compressed_name
         }
 
-
-
-        // if (!node.parent) { // root node
-        //     node.subgrouping = "Other"
-        // } else if (node.type == nodeType.subgroup || !(node.hidden || node.type == nodeType.ignored)) { // subgroup or grouping
-        //     node.subgrouping = node.compressed_name
-        //     nodeDict(root)[node.grouping].subgrouping = nodeDict(root)[node.grouping].label
-        // } else {
-        //     node.subgrouping = node.parent.subgrouping
-        // }
-
-        getAllChildren(node).forEach(addSubgroupings)
+        getAllChildren(node).forEach(addGroupings)
     }
 
     function toggleType(node, type) {
@@ -797,22 +765,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     function setType(node, type) {
         node.type = type
-    }
-
-    function setGrouping(d) {
-        
-    }
-
-    function setIgnore(d) {
-        node.type = nodeType.ignored
-    }
-
-    function setOther(d) {
-        node.type = nodeType.other
-    }
-
-    function setSubgroup(d) {
-        node.type = nodeType.subgroup
     }
 
     //#endregion Node metadata
@@ -857,10 +809,19 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         nodes = new Set();
         addGroupings(d)
         getVisibleNodes(d).forEach(function (n) {
-            if (n.label == n.compressed_name) nodes.add(n);
+            if (node.type == nodeType.group) nodes.add(n);
         })    
         return Array.from(nodes); 
     }
+
+    function getSubgroupingStrains(d) {       
+        nodes = new Set();
+        addGroupings(d)
+        getVisibleNodes(d).forEach(function (n) {
+            if (node.type == nodeType.group || node.type == nodeType.subgroup) nodes.add(n);
+        })    
+        return Array.from(nodes); 
+    }    
 
     //#endregion Node subset
 
@@ -1004,7 +965,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
         if (reset) collapse(root)
         strains.forEach(function(strain) {
-            if (strain == "") return
+            if (strain == "" || strain == "Other") return
             let d = nodeDict(root)[strain]
             if (d) {
                 showNodes(d, redraw = false)
