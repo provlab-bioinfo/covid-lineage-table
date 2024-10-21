@@ -53,7 +53,6 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         group: 'group',
         subgroup: 'subgroup',
         ignored: 'ignored',
-        //other: 'other',
         new: 'new'
       };
 
@@ -61,9 +60,11 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         group: "forestgreen",
         subgroup: "MediumPurple",
         ignored: "firebrick",
-        //other: "goldenrod",
         new: "DodgerBlue"
     }
+
+    const pathColor = "DodgerBlue"
+    const pathTimeout = 4
 
     var tree = d3.layout.tree()
         .size([viewerHeight, viewerWidth]);
@@ -142,44 +143,34 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     // Node colors
 
-    var from = d3.select("#textboxbar2")
+    var fromNode = d3.select("#textboxbar2")
         .append("select")
         .attr("id", "fromSelect")
-        // .on("change", function () {
-        //     var select = d3.select("select").node().value;
-        //     if (select == "From") return
-        //     console.log(select)
-        // });
 
-    from.append("option")
+    fromNode.append("option")
         .attr("value", "From")
         .attr("selected", "true")
         .text("From");
 
     new Array("All", "Grouping", "Subgroup", "Ignored").forEach(function (node) {
-        from.append("option")
+        fromNode.append("option")
                 .attr("value", node)
                 .text(node);
     });
 
     d3.select("#textboxbar2").append("text").text("  >  ")
 
-    var from = d3.select("#textboxbar2")
+    var toNode = d3.select("#textboxbar2")
         .append("select")
         .attr("id", "toSelect")
-        // .on("change", function () {
-        //     var select = d3.select("select").node().value;
-        //     if (select == "To") return
-        //     console.log(select)
-        // });
 
-    from.append("option")
+    toNode.append("option")
         .attr("value", "To")
         .attr("selected", "true")
         .text("To");
 
     new Array("Grouping", "Subgroup", "Ignored").forEach(function (node) {
-        from.append("option")
+        toNode.append("option")
                 .attr("value", node)
                 .text(node);
     });
@@ -267,17 +258,20 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     var select = d3.select("#toolbar")
         .append("select")
+        .attr("id", "strainSelect")
         .on("change", function () {
-            console.log("Finding strain...")
-            var select = d3.select("select").node().value;
+            console.log("Finding strain...")            
+            var select = document.getElementById("strainSelect").value
             if (select == "Locate strain") return
 
+            console.log(select)
             var node = findNode(select)
+            console.log(node)
             showNodes(node)
             centerNode(node)
 
             while (node.parent) {
-                node.color = "#e74c3c";
+                node.color = pathColor;
                 node = node.parent;
             }
 
@@ -892,7 +886,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
     const removePaths = async () => {
-        await wait(2000);
+        await wait(pathTimeout*1000);
         nodeList(root).forEach(function (d) {
             d.color = undefined;
         })
@@ -913,6 +907,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.forEach(function(n) {showNodes(n, redraw = true)})
             updateTree(root)
         } else {
+            console.log(node)
             while (node.parent) {
                 node.hidden = false
                 node.parent._children = spliceByName(node, node.parent._children)
