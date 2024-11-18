@@ -708,12 +708,17 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.grouping = node.subgrouping = "Other"
         } else if (node.type == nodeType.ignored && node.name.startsWith("X") && node.name.length <= 3) { // Ignored recombinant node
             node.grouping = node.subgrouping = "Other" //"Recombinant"
-        } else if (node.hidden || node.type == nodeType.ignored) {
+        } else if (node.hidden || node.type == nodeType.ignored) { //hidden or ignored
             node.grouping = node.parent.grouping 
             node.subgrouping = node.parent.subgrouping            
-        } else {
-            node.grouping = (node.type == nodeType.subgroup) ? node.parent.grouping : node.compressed_name
-            node.subgrouping = node.compressed_name
+        } else { //grouping or subgrouping
+            if (node.name.startsWith("X") && node.name.length <= 3) {
+                node.grouping = (node.type == nodeType.subgroup) ?  "Other" : node.compressed_name
+                node.subgrouping = node.compressed_name
+            } else {
+                node.grouping = (node.type == nodeType.subgroup) ? node.parent.grouping : node.compressed_name
+                node.subgrouping = node.compressed_name
+            }
         }
 
         getAllChildren(node).forEach(addGroupings)
