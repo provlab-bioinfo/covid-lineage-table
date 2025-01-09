@@ -183,9 +183,13 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             nodeFrom = document.getElementById("fromSelect").value
             nodeTo = document.getElementById("toSelect").value
             
-            if (strains == "" || nodeFrom == "From" || nodeTo == "To") return
+            if (nodeFrom == "From" || nodeTo == "To") return
 
-            nodes = findNodesByStrain(strains)
+            if (strains == "") {
+                nodes = nodeList(root)
+            } else {
+                nodes = findNodesByStrain(strains)
+            }
 
             switch (nodeFrom) {
                 case "All":
@@ -359,14 +363,14 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
     d3.select("#helpbox").append("foreignObject")
         .html(function (d) {
             return `<table><tr><td style='text-align: center; background-color:${nodeColor.group};'><font color='white'>Green</font></td><td>&nbsp&nbsp&nbspGrouping strains</td></tr> \
-            <tr><td style='text-align: center; background-color:${nodeColor.subgroup};'><font color='white'>Purple</font></td><td>&nbsp&nbsp&nbspSub-grouping strains</td></tr> \
-<tr><td style='text-align: center; background-color:${nodeColor.ignored};'><font color='white'>Red</font></td><td>&nbsp&nbsp&nbspIgnored strains</td></tr> \
+            <tr><td style='text-align: center; background-color:${nodeColor.subgroup};'><font color='white'>Purple</font></td><td>&nbsp&nbsp&nbspSubgrouping strains</td></tr> \
+            <tr><td style='text-align: center; background-color:${nodeColor.ignored};'><font color='white'>Red</font></td><td>&nbsp&nbsp&nbspIgnored strains</td></tr> \
             <tr><td style='text-align: center; background-color:${nodeColor.new};'><font color='white'>Blue</font></td><td>&nbsp&nbsp&nbspNew strains</td></tr> \
             <tr><td><br /></td></tr> \
             <tr><td style='text-align: right;'>Left Click:</td><td>Un/collapse children</td></tr> \
             <tr><td style='text-align: right;'>CTRL + Click:</td><td>Collapse Node</td></tr> \
-            <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Ignore node</td></tr> \
-            <tr><td style='text-align: right;'>ALT + Left Click:&nbsp&nbsp</td><td>Assign as sub-group</td></tr> \
+            <tr><td style='text-align: right;'>SHIFT + Click:</td><td>Toggle Grouping/Ignore</td></tr> \
+            <tr><td style='text-align: right;'>ALT + Click:</td><td>Assign as Subgroup</td></tr> \
             </table><br> \
             Database last updated: <a href='https://mdu-phl.github.io/pango-watch/'>${treeData.lastChanged}</a>`      
         })
