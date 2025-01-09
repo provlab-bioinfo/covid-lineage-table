@@ -183,9 +183,13 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             nodeFrom = document.getElementById("fromSelect").value
             nodeTo = document.getElementById("toSelect").value
             
-            if (strains == "" || nodeFrom == "From" || nodeTo == "To") return
+            if (nodeFrom == "From" || nodeTo == "To") return
 
-            nodes = findNodesByStrain(strains)
+            if (strains == "") {
+                nodes = nodeList(root)
+            } else {
+                nodes = findNodesByStrain(strains)
+            }
 
             switch (nodeFrom) {
                 case "All":
