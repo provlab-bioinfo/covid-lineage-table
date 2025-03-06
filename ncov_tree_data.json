@@ -3480,7 +3480,7 @@
                   "children": [],
                   "compressed_name": "B.1.1.326",
                   "num_children": 0,
-                  "nextstrain": "20B",
+                  "nextstrain": "20A",
                   "designationDate": "2021-03-15"
                 },
                 {
@@ -18083,7 +18083,7 @@
                                                                         "B.1.1.529.2.86.1.1.11.1.3.1.1.24"
                                                                       ],
                                                                       "num_children": 0,
-                                                                      "nextstrain": "24E",
+                                                                      "nextstrain": "recombinant",
                                                                       "designationDate": "2025-01-28"
                                                                     }
                                                                   ],
@@ -18378,7 +18378,7 @@
                                                         "B.1.1.529.2.86.1.1.67.1.1"
                                                       ],
                                                       "num_children": 0,
-                                                      "nextstrain": "24A",
+                                                      "nextstrain": "recombinant",
                                                       "designationDate": "2025-02-04"
                                                     }
                                                   ],
@@ -21310,7 +21310,7 @@
                                                                     "B.1.1.529.2.86.1.1.11.1.3.1.1.1.1.1"
                                                                   ],
                                                                   "num_children": 0,
-                                                                  "nextstrain": "24F",
+                                                                  "nextstrain": "recombinant",
                                                                   "designationDate": "2025-01-28"
                                                                 }
                                                               ],
@@ -21360,7 +21360,7 @@
                                                                 "B.1.1.529.2.86.1.1.11.1.3.1.1"
                                                               ],
                                                               "num_children": 0,
-                                                              "nextstrain": "24F",
+                                                              "nextstrain": "recombinant",
                                                               "designationDate": "2025-01-28"
                                                             }
                                                           ],
@@ -21470,7 +21470,7 @@
                                                                 "B.1.1.529.2.86.1.1.11.1.3.1.1"
                                                               ],
                                                               "num_children": 0,
-                                                              "nextstrain": "24F",
+                                                              "nextstrain": "recombinant",
                                                               "designationDate": "2025-01-28"
                                                             }
                                                           ],
@@ -21490,7 +21490,7 @@
                                                                 "B.1.1.529.2.86.1.1.11.1.3.1.1.37"
                                                               ],
                                                               "num_children": 0,
-                                                              "nextstrain": "24E",
+                                                              "nextstrain": "recombinant",
                                                               "designationDate": "2025-02-01"
                                                             }
                                                           ],
@@ -21644,7 +21644,7 @@
                                                             "B.1.1.529.2.86.1.1.11.1.3.1.1.29"
                                                           ],
                                                           "num_children": 0,
-                                                          "nextstrain": "24F",
+                                                          "nextstrain": "recombinant",
                                                           "designationDate": "2025-01-28"
                                                         },
                                                         {
@@ -21655,7 +21655,7 @@
                                                             "B.1.1.529.2.86.1.1.11.1.3.1.1.6"
                                                           ],
                                                           "num_children": 0,
-                                                          "nextstrain": "24F",
+                                                          "nextstrain": "recombinant",
                                                           "designationDate": "2025-01-28"
                                                         },
                                                         {
@@ -21666,7 +21666,7 @@
                                                             "B.1.1.529.2.86.1.1.11.1.3.1.1.36.1"
                                                           ],
                                                           "num_children": 0,
-                                                          "nextstrain": "24E",
+                                                          "nextstrain": "recombinant",
                                                           "designationDate": "2025-02-01"
                                                         }
                                                       ],
@@ -22170,7 +22170,7 @@
                                                     "B.1.1.529.2.86.1.1.11.1.1.1.3.8.1.1"
                                                   ],
                                                   "num_children": 0,
-                                                  "nextstrain": "25A",
+                                                  "nextstrain": "recombinant",
                                                   "designationDate": "2025-01-29"
                                                 }
                                               ],
@@ -33254,7 +33254,7 @@
                   "children": [],
                   "compressed_name": "B.1.362.1",
                   "num_children": 0,
-                  "nextstrain": "20A",
+                  "nextstrain": "20C",
                   "designationDate": "2021-03-15"
                 },
                 {
@@ -33262,13 +33262,13 @@
                   "children": [],
                   "compressed_name": "B.1.362.2",
                   "num_children": 0,
-                  "nextstrain": "20A",
+                  "nextstrain": "20C",
                   "designationDate": "2021-03-15"
                 }
               ],
               "compressed_name": "B.1.362",
               "num_children": 2,
-              "nextstrain": "20A",
+              "nextstrain": "20C",
               "designationDate": "Unknown"
             },
             {
@@ -34117,7 +34117,7 @@
               "children": [],
               "compressed_name": "B.1.473",
               "num_children": 0,
-              "nextstrain": "20C",
+              "nextstrain": "20A",
               "designationDate": "Unknown"
             },
             {
@@ -37884,7 +37884,7 @@
               "children": [],
               "compressed_name": "B.1.626",
               "num_children": 0,
-              "nextstrain": "20A",
+              "nextstrain": "20C",
               "designationDate": "2021-06-25"
             },
             {
@@ -38592,7 +38592,7 @@
   ],
   "compressed_name": "SARS-CoV-2",
   "num_children": 4640,
-  "lastChanged": "2025-03-04",
+  "lastChanged": "2025-03-05",
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
