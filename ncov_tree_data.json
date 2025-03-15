@@ -22045,8 +22045,8 @@
                                                           "children": [],
                                                           "compressed_name": "PC.2",
                                                           "num_children": 0,
-                                                          "nextstrain": "24H",
-                                                          "designationDate": "2025-02-04"
+                                                          "nextstrain": "None",
+                                                          "designationDate": "Unknown"
                                                         }
                                                       ],
                                                       "compressed_name": "LF.7.2.1",
@@ -38592,7 +38592,7 @@
   ],
   "compressed_name": "SARS-CoV-2",
   "num_children": 4640,
-  "lastChanged": "2025-03-13",
+  "lastChanged": "2025-03-14",
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
