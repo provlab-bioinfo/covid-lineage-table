@@ -18490,7 +18490,7 @@
                                                             "B.1.1.529.2.86.1.1.16.1.7.1"
                                                           ],
                                                           "num_children": 0,
-                                                          "nextstrain": "24H",
+                                                          "nextstrain": "recombinant",
                                                           "designationDate": "2025-03-13"
                                                         }
                                                       ],
@@ -22308,7 +22308,7 @@
                                                     "B.1.1.529.2.86.1.1.11.1.1.1.3.8.1.2"
                                                   ],
                                                   "num_children": 0,
-                                                  "nextstrain": "24H",
+                                                  "nextstrain": "recombinant",
                                                   "designationDate": "2025-03-12"
                                                 }
                                               ],
@@ -34263,7 +34263,7 @@
               "children": [],
               "compressed_name": "B.1.473",
               "num_children": 0,
-              "nextstrain": "20A",
+              "nextstrain": "20C",
               "designationDate": "Unknown"
             },
             {
@@ -38738,7 +38738,7 @@
   ],
   "compressed_name": "SARS-CoV-2",
   "num_children": 4657,
-  "lastChanged": "2025-04-01",
+  "lastChanged": "2025-04-02",
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
