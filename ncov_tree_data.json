@@ -3480,7 +3480,7 @@
                   "children": [],
                   "compressed_name": "B.1.1.326",
                   "num_children": 0,
-                  "nextstrain": "20A",
+                  "nextstrain": "20B",
                   "designationDate": "2021-03-15"
                 },
                 {
@@ -3881,7 +3881,7 @@
                   "children": [],
                   "compressed_name": "B.1.1.375",
                   "num_children": 0,
-                  "nextstrain": "20D",
+                  "nextstrain": "20B",
                   "designationDate": "2021-03-15"
                 },
                 {
@@ -9979,7 +9979,7 @@
                                                                                                   "children": [],
                                                                                                   "compressed_name": "NB.1.8.1",
                                                                                                   "num_children": 0,
-                                                                                                  "nextstrain": "24D",
+                                                                                                  "nextstrain": "25B",
                                                                                                   "designationDate": "2025-03-12"
                                                                                                 }
                                                                                               ],
@@ -23181,7 +23181,7 @@
                                                     "B.1.1.529.2.86.1.1.16.1.7.2"
                                                   ],
                                                   "num_children": 0,
-                                                  "nextstrain": "24H",
+                                                  "nextstrain": "recombinant",
                                                   "designationDate": "2025-04-02"
                                                 },
                                                 {
@@ -23192,7 +23192,7 @@
                                                     "B.1.1.529.2.86.1.1.16.1.7.6.2"
                                                   ],
                                                   "num_children": 0,
-                                                  "nextstrain": "24H",
+                                                  "nextstrain": "recombinant",
                                                   "designationDate": "2025-04-27"
                                                 }
                                               ],
@@ -34649,7 +34649,7 @@
               "children": [],
               "compressed_name": "B.1.473",
               "num_children": 0,
-              "nextstrain": "20C",
+              "nextstrain": "20A",
               "designationDate": "Unknown"
             },
             {
@@ -39124,7 +39124,7 @@
   ],
   "compressed_name": "SARS-CoV-2",
   "num_children": 4702,
-  "lastChanged": "2025-05-05",
+  "lastChanged": "2025-05-06",
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
