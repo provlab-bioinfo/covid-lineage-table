@@ -23051,24 +23051,15 @@
                                                         },
                                                         {
                                                           "name": "B.1.1.529.2.86.1.1.11.1.3.3.5.6",
-                                                          "children": [
-                                                            {
-                                                              "name": "B.1.1.529.2.86.1.1.11.1.3.3.5.6.1",
-                                                              "children": [],
-                                                              "compressed_name": "PG.6.1",
-                                                              "num_children": 0,
-                                                              "nextstrain": "None",
-                                                              "designationDate": "Unknown"
-                                                            }
-                                                          ],
+                                                          "children": [],
                                                           "compressed_name": "PG.6",
-                                                          "num_children": 1,
+                                                          "num_children": 0,
                                                           "nextstrain": "24C",
                                                           "designationDate": "2025-05-18"
                                                         }
                                                       ],
                                                       "compressed_name": "KP.3.3.5",
-                                                      "num_children": 10,
+                                                      "num_children": 9,
                                                       "nextstrain": "24C",
                                                       "designationDate": "2024-12-20"
                                                     },
@@ -23160,7 +23151,7 @@
                                                     }
                                                   ],
                                                   "compressed_name": "KP.3.3",
-                                                  "num_children": 37,
+                                                  "num_children": 36,
                                                   "nextstrain": "24C",
                                                   "designationDate": "2024-05-16"
                                                 },
@@ -23218,7 +23209,7 @@
                                                 }
                                               ],
                                               "compressed_name": "KP.3",
-                                              "num_children": 212,
+                                              "num_children": 211,
                                               "nextstrain": "24C",
                                               "designationDate": "2024-03-17"
                                             },
@@ -23339,7 +23330,7 @@
                                             }
                                           ],
                                           "compressed_name": "JN.1.11.1",
-                                          "num_children": 447,
+                                          "num_children": 446,
                                           "nextstrain": "24B",
                                           "designationDate": "2024-01-22"
                                         },
@@ -23362,7 +23353,7 @@
                                         }
                                       ],
                                       "compressed_name": "JN.1.11",
-                                      "num_children": 450,
+                                      "num_children": 449,
                                       "nextstrain": "24A",
                                       "designationDate": "2024-01-11"
                                     },
@@ -28945,7 +28936,7 @@
                                     }
                                   ],
                                   "compressed_name": "JN.1",
-                                  "num_children": 1288,
+                                  "num_children": 1287,
                                   "nextstrain": "24A",
                                   "designationDate": "2023-09-29"
                                 },
@@ -29206,7 +29197,7 @@
                                 }
                               ],
                               "compressed_name": "BA.2.86.1",
-                              "num_children": 1320,
+                              "num_children": 1319,
                               "nextstrain": "23I",
                               "designationDate": "2023-09-05"
                             },
@@ -29338,7 +29329,7 @@
                             }
                           ],
                           "compressed_name": "BA.2.86",
-                          "num_children": 1336,
+                          "num_children": 1335,
                           "nextstrain": "23I",
                           "designationDate": "2023-08-17"
                         },
@@ -29691,7 +29682,7 @@
                         }
                       ],
                       "compressed_name": "BA.2",
-                      "num_children": 2892,
+                      "num_children": 2891,
                       "nextstrain": "21L",
                       "designationDate": "2021-12-07"
                     },
@@ -34790,13 +34781,13 @@
                     }
                   ],
                   "compressed_name": "B.1.1.529",
-                  "num_children": 3559,
+                  "num_children": 3558,
                   "nextstrain": "None",
                   "designationDate": "Unknown"
                 }
               ],
               "compressed_name": "B.1.1",
-              "num_children": 4119,
+              "num_children": 4118,
               "nextstrain": "20B",
               "designationDate": "Unknown"
             },
@@ -42994,7 +42985,7 @@
             }
           ],
           "compressed_name": "B.1",
-          "num_children": 5126,
+          "num_children": 5125,
           "nextstrain": "20A",
           "designationDate": "Unknown"
         },
@@ -43491,14 +43482,14 @@
         }
       ],
       "compressed_name": "B",
-      "num_children": 5188,
+      "num_children": 5187,
       "nextstrain": "19A",
       "designationDate": "Unknown"
     }
   ],
   "compressed_name": "SARS-CoV-2",
-  "num_children": 5223,
-  "lastChanged": "2025-09-09",
+  "num_children": 5222,
+  "lastChanged": "2025-09-10",
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
