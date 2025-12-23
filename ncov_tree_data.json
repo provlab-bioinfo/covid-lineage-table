@@ -27830,6 +27830,26 @@
                                                           "designationDate": "Unknown"
                                                         },
                                                         {
+                                                          "name": "XFG.2.12",
+                                                          "children": [
+                                                            {
+                                                              "name": "XGK",
+                                                              "children": [],
+                                                              "compressed_name": "XGK",
+                                                              "otherParents": [
+                                                                "XFG.17.2.1"
+                                                              ],
+                                                              "num_children": 0,
+                                                              "nextstrain": "None",
+                                                              "designationDate": "Unknown"
+                                                            }
+                                                          ],
+                                                          "compressed_name": "XFG.2.12",
+                                                          "num_children": 1,
+                                                          "nextstrain": "None",
+                                                          "designationDate": "Unknown"
+                                                        },
+                                                        {
                                                           "name": "XGE",
                                                           "children": [],
                                                           "compressed_name": "XGE",
@@ -27842,7 +27862,7 @@
                                                         }
                                                       ],
                                                       "compressed_name": "XFG.2",
-                                                      "num_children": 17,
+                                                      "num_children": 19,
                                                       "nextstrain": "25C",
                                                       "designationDate": "2025-05-04"
                                                     },
@@ -27983,6 +28003,26 @@
                                                               "designationDate": "Unknown"
                                                             },
                                                             {
+                                                              "name": "XFG.3.1.12",
+                                                              "children": [
+                                                                {
+                                                                  "name": "XGL",
+                                                                  "children": [],
+                                                                  "compressed_name": "XGL",
+                                                                  "otherParents": [
+                                                                    "XFG.17.2.1"
+                                                                  ],
+                                                                  "num_children": 0,
+                                                                  "nextstrain": "None",
+                                                                  "designationDate": "Unknown"
+                                                                }
+                                                              ],
+                                                              "compressed_name": "XFG.3.1.12",
+                                                              "num_children": 1,
+                                                              "nextstrain": "None",
+                                                              "designationDate": "Unknown"
+                                                            },
+                                                            {
                                                               "name": "XFQ",
                                                               "children": [],
                                                               "compressed_name": "XFQ",
@@ -27995,7 +28035,7 @@
                                                             }
                                                           ],
                                                           "compressed_name": "XFG.3.1",
-                                                          "num_children": 17,
+                                                          "num_children": 19,
                                                           "nextstrain": "25C",
                                                           "designationDate": "2025-05-29"
                                                         },
@@ -28758,7 +28798,7 @@
                                                         }
                                                       ],
                                                       "compressed_name": "XFG.3",
-                                                      "num_children": 108,
+                                                      "num_children": 110,
                                                       "nextstrain": "25C",
                                                       "designationDate": "2025-05-29"
                                                     },
@@ -29753,16 +29793,27 @@
                                                                   "num_children": 0,
                                                                   "nextstrain": "None",
                                                                   "designationDate": "Unknown"
+                                                                },
+                                                                {
+                                                                  "name": "XGJ",
+                                                                  "children": [],
+                                                                  "compressed_name": "XGJ",
+                                                                  "otherParents": [
+                                                                    "XFG.10"
+                                                                  ],
+                                                                  "num_children": 0,
+                                                                  "nextstrain": "None",
+                                                                  "designationDate": "Unknown"
                                                                 }
                                                               ],
                                                               "compressed_name": "XFG.17.2.1",
-                                                              "num_children": 3,
+                                                              "num_children": 4,
                                                               "nextstrain": "None",
                                                               "designationDate": "Unknown"
                                                             }
                                                           ],
                                                           "compressed_name": "XFG.17.2",
-                                                          "num_children": 4,
+                                                          "num_children": 5,
                                                           "nextstrain": "None",
                                                           "designationDate": "Unknown"
                                                         },
@@ -29784,7 +29835,7 @@
                                                         }
                                                       ],
                                                       "compressed_name": "XFG.17",
-                                                      "num_children": 8,
+                                                      "num_children": 9,
                                                       "nextstrain": "None",
                                                       "designationDate": "Unknown"
                                                     },
@@ -30074,13 +30125,13 @@
                                                   "otherParents": [
                                                     "B.1.1.529.2.86.1.1.11.1.1.1.3.8.1.2"
                                                   ],
-                                                  "num_children": 292,
+                                                  "num_children": 297,
                                                   "nextstrain": "25C",
                                                   "designationDate": "2025-03-12"
                                                 }
                                               ],
                                               "compressed_name": "LF.7",
-                                              "num_children": 468,
+                                              "num_children": 473,
                                               "nextstrain": "24H",
                                               "designationDate": "2024-08-15"
                                             },
@@ -30205,7 +30256,7 @@
                                             }
                                           ],
                                           "compressed_name": "JN.1.16.1",
-                                          "num_children": 499,
+                                          "num_children": 504,
                                           "nextstrain": "24A",
                                           "designationDate": "2024-03-14"
                                         },
@@ -30370,7 +30421,7 @@
                                         }
                                       ],
                                       "compressed_name": "JN.1.16",
-                                      "num_children": 519,
+                                      "num_children": 524,
                                       "nextstrain": "24A",
                                       "designationDate": "2024-02-01"
                                     },
@@ -32454,7 +32505,7 @@
                                     }
                                   ],
                                   "compressed_name": "JN.1",
-                                  "num_children": 1617,
+                                  "num_children": 1622,
                                   "nextstrain": "24A",
                                   "designationDate": "2023-09-29"
                                 },
@@ -32715,7 +32766,7 @@
                                 }
                               ],
                               "compressed_name": "BA.2.86.1",
-                              "num_children": 1649,
+                              "num_children": 1654,
                               "nextstrain": "23I",
                               "designationDate": "2023-09-05"
                             },
@@ -32847,7 +32898,7 @@
                             }
                           ],
                           "compressed_name": "BA.2.86",
-                          "num_children": 1665,
+                          "num_children": 1670,
                           "nextstrain": "23I",
                           "designationDate": "2023-08-17"
                         },
@@ -33200,7 +33251,7 @@
                         }
                       ],
                       "compressed_name": "BA.2",
-                      "num_children": 3313,
+                      "num_children": 3318,
                       "nextstrain": "21L",
                       "designationDate": "2021-12-07"
                     },
@@ -38368,13 +38419,13 @@
                     }
                   ],
                   "compressed_name": "B.1.1.529",
-                  "num_children": 3988,
+                  "num_children": 3993,
                   "nextstrain": "None",
                   "designationDate": "Unknown"
                 }
               ],
               "compressed_name": "B.1.1",
-              "num_children": 4548,
+              "num_children": 4553,
               "nextstrain": "20B",
               "designationDate": "Unknown"
             },
@@ -46572,7 +46623,7 @@
             }
           ],
           "compressed_name": "B.1",
-          "num_children": 5555,
+          "num_children": 5560,
           "nextstrain": "20A",
           "designationDate": "Unknown"
         },
@@ -47069,14 +47120,14 @@
         }
       ],
       "compressed_name": "B",
-      "num_children": 5617,
+      "num_children": 5622,
       "nextstrain": "19A",
       "designationDate": "Unknown"
     }
   ],
   "compressed_name": "SARS-CoV-2",
-  "num_children": 5652,
-  "lastChanged": "2025-12-22",
+  "num_children": 5657,
+  "lastChanged": "2025-12-23",
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
