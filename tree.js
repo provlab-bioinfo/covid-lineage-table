@@ -234,7 +234,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         .attr("type","file")
         .attr("id", "tableInput")
         .attr("class","hideInput")
-        .on("change", handleFileSelect)
+        .on("change", handleTableSelect)
     
     d3.select("#toolbar").append("input")    
         .attr("type","button")
@@ -242,6 +242,20 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         .attr("value", "Import Table")
         .on("click", function () {
             document.getElementById('tableInput').click()
+        })
+
+    d3.select("#toolbar").append("input")    
+        .attr("type","file")
+        .attr("id", "strainInput")
+        .attr("class","hideInput")
+        .on("change", handleSubgroupSelect)
+    
+    d3.select("#toolbar").append("input")    
+        .attr("type","button")
+        .attr("id", "strainInput")
+        .attr("value", "Import Top Strains")
+        .on("click", function () {
+            document.getElementById('strainInput').click()
         })
 
     // d3.select("#toolbar").append("button")
@@ -386,7 +400,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
 
     //#region File input
 
-    function handleFileSelect() {
+    function handleTableSelect() {
         // Check for the various File API support.
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             // Great success! All the File APIs are supported.
@@ -395,10 +409,11 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         }
         
         var reader = new FileReader(); 
-        var file = document.querySelector('input[type=file]').files[0];      
+        var file = document.querySelector('input[id=tableInput]').files[0];      
         if (file) {
             dfd.readCSV(file).then((df) => {
-                console.log("Got " + file)
+                console.log("Got " + file.name + ":")
+                df.print()
                 if (!df.columns.includes("subgrouping")) df = df.addColumn("subgrouping",Array(df.index.length).fill("Other"))
                 importTable(df)
             })
@@ -448,6 +463,51 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             //update(node)
         })
         showStrains(newVisible.concat(allgroupings))
+    }
+
+    //#region Top strains input
+
+    function handleSubgroupSelect() {
+
+        console.log("getting top strains")
+
+        // Check for the various File API support.
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            // Great success! All the File APIs are supported.
+        } else {
+            alert('The File APIs are not fully supported in this browser.');
+        }
+        
+        var reader = new FileReader(); 
+        var file = document.querySelector('input[id=strainInput]').files[0];   
+        console.log("Got " + file)   
+        if (file) {
+            dfd.readCSV(file).then((df) => {
+                console.log("Got " + file.name)
+                importSubgroups(df)
+            })
+        }
+    }
+
+    function importSubgroups(df) {
+
+        // Remove existing subgroups from table
+        subgroups = nodeList(root).filter(node => node.type == nodeType.subgroup)
+        subgroups.forEach(function(node) {node.type = nodeType.ignored})
+
+        // Set the subgroup nodes
+        df.print()
+
+        subgroups = df['top_strains'].unique().values
+
+        subgroups = findNodesByStrain(subgroups)
+
+        subgroups = subgroups.filter(node => node.type != nodeType.group) 
+        subgroups.forEach(function(node) {
+            node.type = nodeType.subgroup
+        })
+        
+        showNonIgnoredStrains()
     }
 
     function exportTable() {
@@ -916,7 +976,7 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
             node.forEach(function(n) {showNodes(n, redraw = true)})
             updateTree(root)
         } else {
-            console.log(node)
+            // console.log(node)
             while (node.parent) {
                 node.hidden = false
                 node.parent._children = spliceByName(node, node.parent._children)
@@ -929,6 +989,14 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
                 update(node);
             }
         }
+    }
+
+    function showNonIgnoredStrains(reset = true) {
+        nodes = nodeList(root)
+        nodes = nodes.filter(node => node.type != nodeType.ignored)
+        nodes = nodes.map((node) => node.name)
+        // console.log(nodes)
+        showStrains(nodes, reset)
     }
 
     function showStrains(strains, reset = true) {
