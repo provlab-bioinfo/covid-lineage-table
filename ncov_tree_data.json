@@ -29459,18 +29459,18 @@
                                                                   "num_children": 1,
                                                                   "nextstrain": "None",
                                                                   "designationDate": "Unknown"
-                                                                },
-                                                                {
-                                                                  "name": "XFG.5.4.1.2",
-                                                                  "children": [],
-                                                                  "compressed_name": "QW.2",
-                                                                  "num_children": 0,
-                                                                  "nextstrain": "None",
-                                                                  "designationDate": "Unknown"
                                                                 }
                                                               ],
                                                               "compressed_name": "XFG.5.4.1",
-                                                              "num_children": 3,
+                                                              "num_children": 2,
+                                                              "nextstrain": "None",
+                                                              "designationDate": "Unknown"
+                                                            },
+                                                            {
+                                                              "name": "XFG.5.4.2",
+                                                              "children": [],
+                                                              "compressed_name": "XFG.5.4.2",
+                                                              "num_children": 0,
                                                               "nextstrain": "None",
                                                               "designationDate": "Unknown"
                                                             }
@@ -47705,7 +47705,7 @@
   ],
   "compressed_name": "SARS-CoV-2",
   "num_children": 5724,
-  "lastChanged": "2026-03-12",
+  "lastChanged": "2026-03-13",
   "nextstrain": "None",
   "designationDate": "Unknown"
 }
