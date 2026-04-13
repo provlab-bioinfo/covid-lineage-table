@@ -753,8 +753,10 @@ treeJSON = d3.json("ncov_tree_data.json", function (error, treeData) {
         }
     }
     
-    function findNode(strain) {
-        return nodeDict(root)[strain];
+    function findNode(strain) {   
+        node = nodeDict(root)[strain]
+        if (!node) throw new Error("Cannot find strain: " + strain);
+        return node;
     }
 
     function findNodesByStrain(strains) {
