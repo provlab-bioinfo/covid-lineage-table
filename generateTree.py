@@ -1,6 +1,7 @@
 import json, urllib.request, os
 from datetime import datetime
 import argparse
+from pathlib import Path
 
 os.chdir(os.path.dirname(__file__))
 
@@ -34,6 +35,13 @@ if data is None:
     print("Loading data.json from URL")
     pangoURL = "https://raw.githubusercontent.com/MDU-PHL/pango-watch/main/tree/data.json" 
     data = json.load(urllib.request.urlopen(pangoURL))
+
+    localData = Path("data/data.json")
+    if localData.is_file():
+        localData = json.load(localData.open("r"))
+        if (len(json.dumps(localData)) > len(json.dumps(data))):
+            print("Local data.json is newer. Defaulting to that.")
+            data = localData
 else:
     print("Loading data.json manually")
     with open(data) as file:
