@@ -1,0 +1,11 @@
+name: covid-lineage-table
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pango_aliasor
+  - python=3.10
+  - requests
+  - typer
+  - python=3.10
+prefix: /nfs/APL_Genomics/apps/production/miniconda/envs/covid-lineage-table
