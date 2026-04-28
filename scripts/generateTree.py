@@ -18,8 +18,10 @@ def check_pango_designation(path = "../data/db.json", url = "https://api.github.
     # check for sha in db
     if last_file.sha == new_file.sha:
         # if sha in db no change
-        typer.echo("No change!")
-        return typer.Exit()
+        typer.echo("No changes to data!")
+        return False
+    else:
+        typer.echo("New data found!")
 
     last_text = last_file.text
     diff = new_file.diff(last_text)
@@ -30,7 +32,10 @@ def check_pango_designation(path = "../data/db.json", url = "https://api.github.
     db.put("changes", changes)
     db.put("last", new_file.data)
 
+    return True
+
 def create_tree(path = "../data/db.json"):
+    typer.echo("Creating tree...")
     aliasor = Aliasor()
     db = DB(path=path)
     last_file = db.get_last()
@@ -147,6 +152,7 @@ def addDataToNodes(node, summary):
     :param node: The 'node'; a dictionary derived from the JSON.
     :return: The node with updated data.
     """    
+    typer.echo("Adding data to nodes...")
     if (node.get("name", None) == "root"):
         node["lastChanged"] = datetime.today().strftime('%Y-%m-%d')
 
@@ -163,7 +169,7 @@ def addDataToNodes(node, summary):
 
 # Do the stuff
 # Generate the tree
-check_pango_designation()
+if not check_pango_designation(): exit()
 lineage_tree = create_tree()
 
 # Add extra data to nodes
@@ -176,3 +182,5 @@ pango = addDataToNodes(lineage_tree, summary)
 # Export
 with open('../ncov_tree_data.json', 'w') as f:
     json.dump(pango, f, indent=2)
+
+typer.echo("New tree generated!")
