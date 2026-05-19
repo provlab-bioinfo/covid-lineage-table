@@ -1,4 +1,4 @@
-import json, urllib.request, os
+import json, urllib.request, os, re
 from datetime import datetime
 import typer
 from file import File
@@ -32,6 +32,11 @@ def check_pango_designation(path = "../data/db.json", url = "https://api.github.
     db.put("changes", changes)
     db.put("last", new_file.data)
 
+    new = ";".join(diff)
+    new = sorted(re.findall(r"\+ (.*?)\t", new))
+    new = "\n".join(new)
+
+    typer.echo("Found new lineages:\n" + new)
     return True
 
 def create_tree(path = "../data/db.json"):
@@ -152,7 +157,6 @@ def addDataToNodes(node, summary):
     :param node: The 'node'; a dictionary derived from the JSON.
     :return: The node with updated data.
     """    
-    typer.echo("Adding data to nodes...")
     if (node.get("name", None) == "root"):
         node["lastChanged"] = datetime.today().strftime('%Y-%m-%d')
 
