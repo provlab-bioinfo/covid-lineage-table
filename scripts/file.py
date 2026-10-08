@@ -20,6 +20,8 @@ class File:
     @classmethod
     def from_url(cls, url):
         r = requests.get(url)
+        if len(r.content) == 0:
+            Exception("No content in the downloaded file. Please check download source.")
         data = r.json()
         return cls(data)
 
